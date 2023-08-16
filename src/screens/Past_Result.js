@@ -13,13 +13,15 @@ const Past_Result = () => {
             </TouchableOpacity>
             <Text style={styles.title}>식물 진단 결과</Text>
             <Image source={require('../../assets/yellowleafcurlVirus4.jpg')} style={styles.image} />
-            <Text style={styles.date}>2023년 8월 1일</Text>
-            <Text style={styles.description}>
-                토마토 황화잎말이 바이러스{"\n"}
-                {"\n"}
-                식물에 대한 진단 결과 설명이 이곳에 들어갑니다.{"\n"}
-                식물의 상태와 관련된 정보를 자세히 설명해주세요.
-            </Text>
+            <Text style={styles.datetime}>2023년 8월 1일 15:35</Text>
+                <Text style={styles.description}>
+                    토마토 황화잎말이 바이러스{"\n"}
+                    {"\n"}
+                    식물에 대한 진단 결과 설명이
+                    이곳에 들어갑니다.{"\n"}
+                    식물의 상태와 관련된 정보를
+                    자세히 설명해주세요.
+                </Text>
         </View>
     );
 };
@@ -48,19 +50,22 @@ const styles = StyleSheet.create({
         resizeMode: 'cover',
         borderRadius: 10,
     },
-    date: {
+    datetime: {
         marginTop: 10,
         fontSize: 16,
         color: '#666',
     },
     description: {
-        marginTop: 20,
+        margin: 20,
         fontSize: 16,
-        textAlign: 'center',
+        textAlign: 'left',
         color: '#333',
         borderWidth: 1,
         borderRadius: 10,
         borderColor: '#8CB972',
+        alignItems: 'center',
+        padding: 30,
+        width: 300,
     },
 });
 

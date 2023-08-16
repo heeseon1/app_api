@@ -13,12 +13,7 @@ const UseGuide = () => {
     const [popupIndex, setPopupIndex] = useState(0);
 
     const handleBack = () => {
-        if (popupIndex > 0) {
-            setPopupIndex(popupIndex - 1);
-        } else {
-            // 팝업이 첫 번째 화면일 때 뒤로가기 아이콘을 누르면 UseGuide 화면을 벗어납니다.
             navigation.navigate('Home');
-        }
     };
 
     const handleNext = () => {
@@ -95,7 +90,7 @@ const UseGuide = () => {
                             문의 바랍니다
                             </Text>
                         <TouchableOpacity onPress={handlePrevious} style={styles.arrowContainerLeft}>
-                            <Icon name="close" color="white" size={40} />
+                            <Icon name="keyboard-arrow-left" color="white" size={40} />
                         </TouchableOpacity>
                     </View>
                 );
@@ -118,7 +113,7 @@ const UseGuide = () => {
             {popupIndex >= 0 && (
                 <View style={styles.popupOverlay}>
                 <TouchableOpacity onPress={handleBack} style={styles.backArrowContainer}>
-                    <Icon name="keyboard-arrow-left" color="white" size={40} />
+                    <Icon name="close" color="white" size={40} />
                 </TouchableOpacity>
                 {renderPopupContent()}
             </View>

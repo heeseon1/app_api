@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+
 
 const CustomButton = ({ title, screenName }) => {
     const navigation = useNavigation();
@@ -12,6 +14,7 @@ const CustomButton = ({ title, screenName }) => {
     return (
         <TouchableOpacity style={styles.button} onPress={handlePress}>
             <Text style={styles.buttonText}>{title}</Text>
+            <Icon name="arrow-right" size={40} color="#E5EFDF" style={styles.icon} />
         </TouchableOpacity>
     );
 };
@@ -45,18 +48,22 @@ const styles = StyleSheet.create({
         width: 400,
     },
     button: {
-        padding: 25,
+        padding: 10,
         backgroundColor: '#2D5E40',
-        justifyContent: 'flex-start',
-        alignSelf: 'flex-start',
         width: '100%',
         borderColor: '#E5EFDF',
         borderBottomWidth: 1,
+        height: 70,
+        flexDirection: 'row',
+        alignItems: 'center',
     },
     buttonText: {
         color: '#E5EFDF',
         fontSize: 20,
-        left: 30,
+    },
+    icon: {
+        marginLeft: 'auto', // 화살표 아이콘을 우측으로 이동
+        left: -40,
     },
 });
 

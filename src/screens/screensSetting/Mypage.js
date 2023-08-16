@@ -1,10 +1,13 @@
 import React, {useState} from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute  } from '@react-navigation/native';
 import Modal from 'react-native-modal';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+
 
 const Mypage = () => {
     const navigation = useNavigation();
+    const route = useRoute();
     const [isLogoutModalVisible, setLogoutModalVisible] = useState(false);
 
     const data = [
@@ -33,6 +36,14 @@ const Mypage = () => {
         navigation.navigate('Login');
     };
 
+    const renderBackButton = () => {
+        return (
+            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                <Icon name="arrow-back" size={30} color="black" />
+            </TouchableOpacity>
+        );
+    };
+
 
     const renderItem = ({ item }) => (
         <TouchableOpacity
@@ -46,11 +57,13 @@ const Mypage = () => {
 
     return (
         <View style={styles.container}>
+            <View style={styles.header}>
+                {renderBackButton()}
+            </View>
             <Text style={styles.appName}>GreenDan</Text>
-
             <Image source={require('../../../assets/profile_tomato.jpg')} style={styles.profileImage} />
             <Text style={styles.welcomeText}>환영합니다!</Text>
-            <Text style={styles.nickname}>사용자 닉네임</Text>
+            <Text style={styles.nickname}>{route.params?.newNickname || '견습농부'}</Text>
             
             <FlatList
                 data={data}
@@ -162,6 +175,18 @@ const styles = StyleSheet.create({
         color: 'white',
         fontWeight: 'bold',
     },
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'flex-start',
+        alignItems: 'center',
+    },
+    backButton: {
+        padding: 10,
+        left: 140,
+        top: 10,
+    },
 });
 
 export default Mypage;
+
+

@@ -3,24 +3,29 @@ import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, Alert } fro
 import Icon from 'react-native-vector-icons/Ionicons';
 
 const Pw_reset = ({ navigation }) => {
+    const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
 
     const handleResetPassword = () => {
-        if (newPassword === confirmPassword) {
-            // 비밀번호 재설정 로직을 여기에 추가하세요
-            Alert.alert(
-                '비밀번호 변경 완료',
-                '비밀번호가 변경되었습니다.',
-                [
-                    {
-                        text: '확인',
-                        onPress: () => navigation.goBack(),
-                    },
-                ]
-            );
+        if (newPassword !== currentPassword) {
+            if (newPassword === confirmPassword) {
+                // 비밀번호 재설정 로직을 여기에 추가하세요
+                Alert.alert(
+                    '비밀번호 변경 완료',
+                    '비밀번호가 변경되었습니다.',
+                    [
+                        {
+                            text: '확인',
+                            onPress: () => navigation.goBack(),
+                        },
+                    ]
+                );
+            } else {
+                Alert.alert('비밀번호 확인', '입력한 비밀번호가 일치하지 않습니다.');
+            }
         } else {
-            Alert.alert('비밀번호 확인', '입력한 비밀번호가 일치하지 않습니다.');
+            Alert.alert('비밀번호 확인', '기존 비밀번호와 새 비밀번호는 같을 수 없습니다.');
         }
     };
 
@@ -28,6 +33,13 @@ const Pw_reset = ({ navigation }) => {
         <View style={styles.container}>
             <Image source={require('../../../assets/main.png')} style={styles.logo} />
             <Text style={styles.appName}>GreenDan</Text>
+            <TextInput
+                style={styles.input}
+                placeholder="기존 비밀번호"
+                secureTextEntry={true}
+                value={currentPassword}
+                onChangeText={text => setCurrentPassword(text)}
+            />
             <TextInput
                 style={styles.input}
                 placeholder="새 비밀번호"
@@ -82,12 +94,12 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         paddingVertical: 10,
         paddingHorizontal: 15,
-        marginBottom: 15,
+        marginBottom: 10,
         backgroundColor: '#E5EFDF',
     },
     resetButton: {
         width: 250,
-        backgroundColor: 'blue',
+        backgroundColor: '#2D5E40',
         paddingVertical: 12,
         borderRadius: 5,
         alignItems: 'center',

@@ -67,7 +67,7 @@ const SoftwareLicense = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#2D5E40',
+        backgroundColor: '#8CB972',
     },
     header: {
         flexDirection: 'row',

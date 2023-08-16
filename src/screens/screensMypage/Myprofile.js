@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Image, TextInput, Modal, FlatList, StyleSheet, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import ImagePicker from 'react-native-image-picker';
 import { useNavigation } from '@react-navigation/native';
-
+import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 
 const MyProfile = () => {
     const [isEditing, setIsEditing] = useState(false);
@@ -14,33 +13,36 @@ const MyProfile = () => {
 
     const navigation = useNavigation();
 
-
-    const handleEditProfilePicture = () => {
+    const openCamera = () => {
         const options = {
-        title: '프로필 사진 선택',
-        cancelButtonTitle: '취소',
-        takePhotoButtonTitle: '카메라로 찍기',
-        chooseFromLibraryButtonTitle: '갤러리에서 선택',
-        quality: 0.5,
-        storageOptions: {
-            skipBackup: true,
-            path: 'images',
-        },
+            mediaType: 'photo',
+            quality: 0.5,
         };
 
-        ImagePicker.showImagePicker(options, (response) => {
-        if (response.didCancel) {
-            console.log('User cancelled image picker');
-        } else if (response.error) {
-            console.log('ImagePicker Error: ', response.error);
-        } else if (response.customButton) {
-            console.log('User tapped custom button: ', response.customButton);
-        } else {
-            const source = { uri: response.uri };
-
-            setProfileImage(source);
-        }
+        launchCamera(options, (response) => {
+            if (!response.didCancel) {
+                const source = { uri: response.uri };
+                setProfileImage(source);
+            }
         });
+    };
+
+    const openGallery = () => {
+        const options = {
+            mediaType: 'photo',
+            quality: 0.5,
+        };
+
+        launchImageLibrary(options, (response) => {
+            if (!response.didCancel) {
+                const source = { uri: response.uri };
+                setProfileImage(source);
+            }
+        });
+    };
+
+    const handleEditProfilePicture = () => {
+        setIsModalVisible(true);
     };
 
     const handleEditNickname = () => {
@@ -53,8 +55,8 @@ const MyProfile = () => {
 
     const handleSaveNickname = () => {
         if (newNickname) {
-        setNickname(newNickname);
-        setIsEditing(false);
+            setNickname(newNickname);
+            setIsEditing(false);
         }
     };
 
@@ -63,86 +65,115 @@ const MyProfile = () => {
     };
 
     const handleSaveProfile = () => {
-        // Implement logic to save profile changes
-        setIsModalVisible(false);
-        Alert.alert('프로필 수정 완료', '프로필이 수정되었습니다!');
+        if (newNickname || profileImage.uri) {
+            if (newNickname) {
+                setNickname(newNickname);
+                navigation.navigate('Mypage', { newNickname }); // 닉네임 값 전달
+            }
+            setIsModalVisible(false);
+            Alert.alert('프로필 수정 완료', '프로필이 수정되었습니다!');
+        } else {
+            setIsModalVisible(false);
+        }
     };
 
     const handleConfirmGoBack = () => {
         Alert.alert(
-        '프로필 수정 취소',
-        '프로필 수정을 취소하시겠습니까?',
-        [
-            { text: '확인', onPress: () => navigation.goBack() }, // 이전 화면으로 이동 로직 추가
-            { text: '취소', onPress: () => {} },
-        ]
+            '프로필 수정',
+            '프로필 수정을 완료하시겠습니까?',
+            [
+                { text: '확인', onPress: () => navigation.goBack() }, // 이전 화면으로 이동 로직 추가
+                { text: '취소', onPress: () => {} },
+            ]
         );
     };
 
+    const buttons = [
+        { key: 'camera', title: '카메라', onPress: openCamera },
+        { key: 'gallery', title: '갤러리', onPress: openGallery },
+    ];
+
+    const renderItem = ({ item }) => (
+        <TouchableOpacity style={styles.button} onPress={item.onPress}>
+            <Text style={styles.buttonTitle}>{item.title}</Text>
+        </TouchableOpacity>
+    );
 
     return (
         <View style={styles.container}>
-        <View style={styles.header}>
-            <Text style={styles.appName}>GreenDan</Text>
-            <TouchableOpacity onPress={handleConfirmGoBack}>
-            <Icon name="arrow-back" size={24} color="black" />
-            </TouchableOpacity>
-        </View>
-        <View style={styles.profileImageContainer}>
-            <TouchableOpacity onPress={handleEditProfilePicture}>
-            <Image source={profileImage} style={styles.profileImage} />
-            <Icon name="camera" size={24} color="white" style={styles.cameraIcon} />
-            </TouchableOpacity>
-        </View>
-        <View style={styles.nicknameContainer}>
-            {isEditing ? (
-            <View style={styles.editNicknameRow}>
-                <TextInput
-                style={styles.editNicknameInput}
-                value={newNickname}
-                onChangeText={handleNicknameChange}
-                placeholder="새 닉네임 입력"
-                placeholderTextColor="gray"
-                />
-                <TouchableOpacity
-                style={[styles.editNicknameButton, { backgroundColor: newNickname ? 'black' : 'gray' }]}
-                onPress={handleSaveNickname}
-                disabled={!newNickname}
-                >
-                <Text style={styles.editNicknameButtonText}>완료</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.editNicknameButton} onPress={handleCancelNickname}>
-                <Text style={styles.editNicknameButtonText}>취소</Text>
+            <View style={styles.header}>
+                <Text style={styles.appName}>GreenDan</Text>
+                <TouchableOpacity onPress={handleConfirmGoBack}>
+                    <Icon name="arrow-back" size={24} color="black" />
                 </TouchableOpacity>
             </View>
-            ) : (
-            <View style={styles.nicknameRow}>
-                <Text style={styles.nicknameText}>{nickname}</Text>
-                <TouchableOpacity onPress={handleEditNickname}>
-                <Text style={styles.editNicknameText}>닉네임 수정</Text>
+            <View style={styles.profileImageContainer}>
+                <TouchableOpacity onPress={handleEditProfilePicture}>
+                    {profileImage ? ( // profileImage가 null 또는 정의되지 않았는지 확인
+                        <Image source={profileImage} style={styles.profileImage} />
+                    ) : (
+                        <View style={styles.profileImagePlaceholder}>
+                            <Icon name="person" size={120} color="white" />
+                        </View>
+                    )}
+                    <Icon name="camera" size={24} color="white" style={styles.cameraIcon} />
                 </TouchableOpacity>
             </View>
-            )}
-        </View>
-        
-        <Modal visible={isModalVisible} transparent animationType="slide">
-            <View style={styles.modalContent}>
-            <View style={styles.modalBox}>
-                <Text style={styles.modalText}>프로필 사진 변경</Text>
-                <TouchableOpacity style={styles.modalButton} onPress={handleSaveProfile}>
-                <Text>확인</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.cancelButton} onPress={() => setIsModalVisible(false)}>
-                <Text>취소</Text>
-                </TouchableOpacity>
+
+            <View style={styles.nicknameContainer}>
+                {isEditing ? (
+                    <View style={styles.editNicknameRow}>
+                        <TextInput
+                            style={styles.editNicknameInput}
+                            value={newNickname}
+                            onChangeText={handleNicknameChange}
+                            placeholder="새 닉네임 입력"
+                            placeholderTextColor="gray"
+                        />
+                        <View style={styles.editNicknameButtonGroup}>
+                            <TouchableOpacity
+                                style={[styles.editNicknameButton, styles.confirmButton, { backgroundColor: newNickname ? 'black' : 'gray' }]}
+                                onPress={handleSaveNickname}
+                                disabled={!newNickname}
+                            >
+                                <Text style={styles.buttonText}>완료</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={[styles.editNicknameButton, styles.cancelButton2]} onPress={handleCancelNickname}>
+                                <Text style={styles.buttonText2}>취소</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                ) : (
+                    <View style={styles.nicknameRow}>
+                        <Text style={styles.nicknameText}>{nickname}</Text>
+                        <TouchableOpacity onPress={handleEditNickname}>
+                            <Text style={styles.editNicknameText}>닉네임 수정</Text>
+                        </TouchableOpacity>
+                    </View>
+                )}
             </View>
-            </View>
-        </Modal>
+
+            <Modal visible={isModalVisible} transparent animationType="slide">
+                <View style={styles.modalContent}>
+                    <View style={styles.modalBox}>
+                        <Text style={styles.modalText}>프로필 사진 변경</Text>
+                        <FlatList
+                            data={buttons}
+                            renderItem={renderItem}
+                            keyExtractor={item => item.key}
+                            contentContainerStyle={styles.buttonContainer}
+                        />
+                        <TouchableOpacity style={styles.cancelButton} onPress={() => setIsModalVisible(false)}>
+                            <Text>취소</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
-    };
+};
 
-    const styles = StyleSheet.create({
+const styles = StyleSheet.create({
     container: {
         flex: 1,
         padding: 20,
@@ -221,6 +252,7 @@ const MyProfile = () => {
         backgroundColor: 'white',
         padding: 20,
         borderRadius: 10,
+        height: 300,
     },
     modalText: {
         fontSize: 28,
@@ -232,7 +264,42 @@ const MyProfile = () => {
     cancelButton: {
         color: 'red',
     },
+    buttonContainer: {
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    button: {
+        backgroundColor: '#8CB972',
+        padding: 10,
+        borderRadius: 5,
+        margin: 10,
+        width: 200,
+        height: 60,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    buttonTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+    },
+    cancelButton2: {
+        backgroundColor: 'rgba(0, 0, 0, 0.1)',
+    },
+    confirmButton: {
+        backgroundColor: 'black',
+    },
+    buttonText: {
+        color: 'white',
+        fontWeight: 'bold',
+        fontSize: 28,
+    },
+    buttonText2: {
+    },
+    editNicknameButtonGroup: {
+        flexDirection: 'column',
+        alignItems: 'center',
+        top: 15,
+    },
 });
-    
+
 export default MyProfile;
-    

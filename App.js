@@ -33,6 +33,8 @@ import Mypage from './src/screens/screensSetting/Mypage';
 import Configuration from './src/screens/screensSetting/Configuration';
 import Notice from './src/screens/screensSetting/Notice';
 import Inquiry from './src/screens/screensSetting/Inquiry';
+import Inquiry_style from './src/screens/screensSetting/Inquiry_style';
+
 import UseGuide from './src/screens/screensSetting/UseGuide';
 import TermsOfUse from './src/screens/screensSetting/TermsOfUse';
 import PrivacyPolicy from './src/screens/screensSetting/PrivacyPolicy';
@@ -161,6 +163,14 @@ const App = () => {
                 component={Inquiry}
                 options={{headerShown: false}}
                 />
+                <Stack.Screen
+                name="Inquiry_style"
+                component={Inquiry_style}
+                options={{headerShown: false}}
+                />
+
+
+
                 <Stack.Screen
                 name="UseGuide"
                 component={UseGuide}

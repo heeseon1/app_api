@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         elevation: 5,
         color: 'gray',
-        width: 200,
+        width: 300,
     },
     popupButtons: {
         flexDirection: 'row',
@@ -125,9 +125,12 @@ const styles = StyleSheet.create({
         padding: 10,
         borderRadius: 5,
         margin: 5,
+        width: 100,
+        alignItems: 'center',
     },
     popupText: {
         color: 'gray',
+        fontSize: 20,
     },
     selectedImage: {
         width: 150,

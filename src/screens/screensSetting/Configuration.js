@@ -18,7 +18,7 @@ const Configuration = () => {
 
     const data = [
         { id: 'notification', label: 'Receive Notifications:', switch: true },
-        { id: 'info', label: 'App Info' }
+        { id: 'info', label: '계정 확인' }
     ];
 
     const renderItem = ({ item }) => {
@@ -60,8 +60,8 @@ const Configuration = () => {
                 onRequestClose={() => setModalVisible(false)}
             >
             <View style={styles.modalContainer}>
-                    <Text style={styles.modalTitle}>App Info</Text>
-                    <Text style={styles.modalText}>App Version: vol.0.4</Text>
+                    <Text style={styles.modalTitle}>계정 확인</Text>
+                    <Text style={styles.modalText}>App Version: vol.0.5</Text>
                     <Text style={styles.modalText}>Platform: Android Only</Text>
                     <TouchableOpacity
                         style={styles.closeButton}
@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        backgroundColor: 'rgba(0, 0, 0, 0.4)',
     },
     modalTitle: {
         fontSize: 24,
