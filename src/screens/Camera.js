@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, Image, FlatList } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, Image, FlatList, Modal, ActivityIndicator } from 'react-native';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import Result from './screensPhoto/Result';
 
 const Camera = ({ navigation }) => {
     const [selectedImage, setSelectedImage] = useState(null);
     const [showPopup, setShowPopup] = useState(false);
+    const [isLoading, setIsLoading] = useState(false); 
 
     const openCamera = () => {
         launchCamera({ mediaType: 'photo' }, response => {
@@ -26,9 +27,16 @@ const Camera = ({ navigation }) => {
     };
 
     const handleDiagnose = () => {
-        setShowPopup(false);
-        navigation.navigate('Past_Result', { selectedImage });
-    };
+        setIsLoading(true); // 로딩 상태를 true로 변경
+
+        // 가상의 로딩 시간을 지연시킴 (실제 작업이 여기에 와야 함)
+        setTimeout(() => {
+            setIsLoading(false);
+            setShowPopup(false);
+            navigation.navigate('Past_Result', { selectedImage });
+        }, 2000); // 2초
+    // 실제 작업 코드는 여기에 작성되어야 함
+};
 
     const buttons = [
         { key: 'camera', title: '카메라', onPress: openCamera },
@@ -71,6 +79,14 @@ const Camera = ({ navigation }) => {
                     </View>
                 </View>
             )}
+
+            {/* 로딩 화면 */}
+            <Modal visible={isLoading} transparent={true}>
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color="#8CB972" />
+                    <Text style={styles.loadingText}>결과를 분석하는 중...</Text>
+                </View>
+            </Modal>
         </View>
     );
 };
@@ -114,6 +130,7 @@ const styles = StyleSheet.create({
         elevation: 5,
         color: 'gray',
         width: 300,
+        marginBottom: 200,
     },
     popupButtons: {
         flexDirection: 'row',
@@ -137,6 +154,18 @@ const styles = StyleSheet.create({
         height: 150,
         marginVertical: 10,
     },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    },
+    loadingText: {
+        color: 'white',
+        marginTop: 10,
+    },
 });
 
 export default Camera;
+
+

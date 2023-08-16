@@ -70,3 +70,5 @@ const styles = StyleSheet.create({
 });
 
 export default Past_Result;
+
+
