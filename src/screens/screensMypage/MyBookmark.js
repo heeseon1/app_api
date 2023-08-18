@@ -13,6 +13,7 @@ const MyBookmark = ({ data = [] }) => {
             explanation: item.explanation,
             date: item.date, // 추가: 날짜 정보 전달
             bookmarked: item.bookmarked, // 추가: 북마크 여부 전달
+            updateBookmark: handleBookmark,
         });
     };
 
@@ -122,3 +123,5 @@ const styles = StyleSheet.create({
 });
 
 export default MyBookmark;
+
+

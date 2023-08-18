@@ -1,14 +1,14 @@
-import React, {useState} from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
-import { useNavigation, useRoute  } from '@react-navigation/native';
+import React, { useState } from 'react';
+import { View, Text, Image, TouchableOpacity, StyleSheet, FlatList, Switch } from 'react-native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-
 
 const Mypage = () => {
     const navigation = useNavigation();
     const route = useRoute();
     const [isLogoutModalVisible, setLogoutModalVisible] = useState(false);
+    const [pushNotificationEnabled, setPushNotificationEnabled] = useState(true);
 
     const data = [
         {
@@ -36,6 +36,10 @@ const Mypage = () => {
         navigation.navigate('Login');
     };
 
+    const togglePushNotification = () => {
+        setPushNotificationEnabled(!pushNotificationEnabled);
+    };
+
     const renderBackButton = () => {
         return (
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
@@ -44,14 +48,12 @@ const Mypage = () => {
         );
     };
 
-
     const renderItem = ({ item }) => (
         <TouchableOpacity
             style={styles.buttonContainer}
             onPress={() => handleNavigation(item.screen)}
         >
             <Text style={styles.buttonText}>{item.title}</Text>
-            <Text style={styles.logoutButtonText}>로그아웃</Text>
         </TouchableOpacity>
     );
 
@@ -64,13 +66,19 @@ const Mypage = () => {
             <Image source={require('../../../assets/profile_tomato.jpg')} style={styles.profileImage} />
             <Text style={styles.welcomeText}>환영합니다!</Text>
             <Text style={styles.nickname}>{route.params?.newNickname || '견습농부'}</Text>
-            
             <FlatList
                 data={data}
                 renderItem={renderItem}
                 keyExtractor={item => item.id}
                 style={styles.buttonList}
             />
+            <View style={styles.pushNotificationContainer}>
+                <Text style={styles.pushNotificationLabel}>공지사항의 푸시 알림 설정</Text>
+                <Switch
+                    value={pushNotificationEnabled}
+                    onValueChange={togglePushNotification}
+                />
+            </View>
 
             <TouchableOpacity
                 style={styles.logoutButton}
@@ -95,6 +103,8 @@ const Mypage = () => {
         </View>
     );
 };
+
+
 
 const styles = StyleSheet.create({
     container: {
@@ -125,18 +135,21 @@ const styles = StyleSheet.create({
     },
     buttonList: {
         margin: 10,
-        width: '70%',
+        width: 250,
     },
     buttonContainer: {
         backgroundColor: '#2D5E40',
         paddingTop: 20,
         borderRadius: 10,
         margin: 5,
-        alignItems: 'center',
+        height: 70,
     },
     buttonText: {
         fontSize: 18,
         color: '#CBDFC0',
+        textAlign: 'center',
+        alignItems: 'center',
+        margin: 5,
     },
     logoutButton: {
         backgroundColor: '#CBDFC0',
@@ -185,8 +198,10 @@ const styles = StyleSheet.create({
         left: 140,
         top: 10,
     },
+    pushNotificationContainer: {
+        top: -80,
+    },
 });
 
 export default Mypage;
-
 

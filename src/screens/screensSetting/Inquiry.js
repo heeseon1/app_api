@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Modal, FlatList } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Modal, FlatList, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
@@ -8,6 +8,7 @@ const Inquiry = () => {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [checkedItems, setCheckedItems] = useState([]);
     const [inquiryContent, setInquiryContent] = useState('');
+    const [showSubmitPopup, setShowSubmitPopup] = useState(false); // 팝업 표시 여부 상태 추가
 
     const handleCheckboxToggle = (item) => {
         const updatedCheckedItems = checkedItems.includes(item)
@@ -18,11 +19,23 @@ const Inquiry = () => {
     };
 
     const handleInquirySubmit = () => {
-        if (checkedItems.length > 0 && inquiryContent.length > 0) {
+        if (checkedItems.length === 0 || inquiryContent.length === 0) {
+            // 조건을 만족하지 않는 경우 팝업을 띄웁니다.
+            Alert.alert('문의 종류 체크와 내용을 모두 입력해주세요');
+        } else {
             setCheckedItems([]);
             setInquiryContent('');
             setIsModalVisible(false);
+            showCompletionPopup();
         }
+    };
+
+    const closeSubmitPopup = () => {
+        setShowSubmitPopup(false);
+    };
+
+    const showCompletionPopup = () => {
+        Alert.alert('문의가 성공적으로 작성되었습니다.');
     };
 
     const data = [
@@ -83,7 +96,7 @@ const Inquiry = () => {
             <View style={styles.containerInquriy}>
 
                 <View style={styles.dateContainer}>
-                    <Text style={styles.LabelText}>label: {item.label}</Text>
+                    <Text style={styles.LabelText}>Label: {item.label}</Text>
                     <Text style={styles.dateText}>Date: {item.datetime}</Text>
                 </View>
                 
@@ -114,12 +127,12 @@ const Inquiry = () => {
                 onRequestClose={() => setIsModalVisible(false)}
             >
                 <View style={styles.modalContainer}>
-                <TouchableOpacity
-                    style={styles.closeButton}
-                    onPress={() => setIsModalVisible(false)}
-                >
-                    <Icon name="close" size={30} color="#2D5E40" />
-                </TouchableOpacity>
+                    <TouchableOpacity
+                        style={styles.closeButton}
+                        onPress={() => setIsModalVisible(false)}
+                    >
+                        <Icon name="close" size={30} color="#2D5E40" />
+                    </TouchableOpacity>
                     <Text style={styles.modalTitle}>문의 작성하기</Text>
                     <FlatList
                         data={data}
@@ -138,7 +151,7 @@ const Inquiry = () => {
                     <TouchableOpacity
                         style={styles.submitButton}
                         onPress={handleInquirySubmit}
-                        disabled={checkedItems.length === 0 || inquiryContent.length === 0}
+                        
                     >
                         <Text style={styles.submitButtonText}>작성 완료</Text>
                     </TouchableOpacity>
@@ -226,16 +239,18 @@ const styles = StyleSheet.create({
         borderColor: '#2D5E40',
         borderRadius: 5,
         padding: 10,
-        marginBottom: 20,
+        top: -250,
         minHeight: 100,
         textAlignVertical: 'top',
         color: 'black',
+        height: 300,
     },
     submitButton: {
         backgroundColor: '#8CB972',
         paddingVertical: 10,
         borderRadius: 5,
         alignItems: 'center',
+        top: -230,
     },
     submitButtonText: {
         fontSize: 18,

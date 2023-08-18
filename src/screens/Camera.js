@@ -133,13 +133,13 @@ const styles = StyleSheet.create({
         marginBottom: 200,
     },
     popupButtons: {
-        flexDirection: 'row',
+        flexDirection: 'row',   
         marginTop: 20,
         marginVertical: 10,
     },
     popupButton: {
         backgroundColor: '#8CB972',
-        padding: 10,
+        
         borderRadius: 5,
         margin: 5,
         width: 100,

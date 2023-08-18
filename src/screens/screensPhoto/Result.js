@@ -13,10 +13,7 @@ const Result = () => {
             id: '1',
             title: '토마토 잎 곰팡이병',
             image: require('../../../assets/tomatoleafmold3.jpg'),
-            explanation: `
-                잎의 일차 감염에서 꽃 (특히 종자를 생산하는 작물에서 위험) 
-                ...
-            `,
+            explanation: `잎의 일차 감염에서 꽃 (특히 종자를 생산하는 작물에서 위험) ...`,
             datetime: '2023-06-10 15:30', // 날짜 정보 추가
             bookmarked: false, // 북마크 여부 추가
         },
@@ -24,11 +21,7 @@ const Result = () => {
             id: '2',
             title: '토마토 황화잎말이 바이러스',
             image: require('../../../assets/yellowleafcurlVirus3.jpg'),
-            explanation: `
-                토마토 황화잎말이병은 토마토 
-                Yellow Leaf Curl Virus 
-                (TYLCV)에 의하여 발생하는 바이러스병해다.
-            `,
+            explanation: `토마토 황화잎말이병은 토마토 Yellow Leaf Curl Virus (TYLCV)에 의하여 발생하는 바이러스병해다.`,
             datetime: '2023-08-01 12:30',
             bookmarked: false,
         },
@@ -36,11 +29,7 @@ const Result = () => {
             id: '3',
             title: '토마토 황화잎말이 바이러스',
             image: require('../../../assets/yellowleafcurlVirus5.jpg'),
-            explanation: `
-                토마토 황화잎말이병은 토마토 
-                Yellow Leaf Curl Virus 
-                (TYLCV)에 의하여 발생하는 바이러스병해다.
-            `,
+            explanation: `토마토 황화잎말이병은 토마토 Yellow Leaf Curl Virus (TYLCV)에 의하여 발생하는 바이러스병해다.`,
             datetime: '2023-08-10 19:30',
             bookmarked: false,
         },
@@ -48,11 +37,7 @@ const Result = () => {
             id: '4',
             title: '토마토 황화잎말이 바이러스',
             image: require('../../../assets/yellowleafcurlVirus4.jpg'),
-            explanation: `
-                토마토 황화잎말이병은 토마토 
-                Yellow Leaf Curl Virus 
-                (TYLCV)에 의하여 발생하는 바이러스병해다.
-            `,
+            explanation: `토마토 황화잎말이병은 토마토 Yellow Leaf Curl Virus (TYLCV)에 의하여 발생하는 바이러스병해다.`,
             datetime: '2023-08-10 19:30',
             bookmarked: false,
         },
@@ -60,16 +45,15 @@ const Result = () => {
             id: '5',
             title: '토마토 잎 곰팡이병',
             image: require('../../../assets/tomatoleafmold4.jpg'),
-            explanation: `
-                잎의 일차 감염에서 꽃 (특히 종자를 생산하는 작물에서 위험) 
-                ...
-            `,
+            explanation: `잎의 일차 감염에서 꽃 (특히 종자를 생산하는 작물에서 위험) ...`,
             datetime: '2023-08-13 15:20', // 날짜 정보 추가
             bookmarked: false, // 북마크 여부 추가
         },
     ];
 
     const [data, setData] = useState(route.params?.data || resultData);
+    const [bookmarkedItems, setBookmarkedItems] = useState([]); // 북마크된 아이템들의 배열
+
 
     const handleBookmark = (item) => {
         const updatedData = data.map(dataItem => {
@@ -88,6 +72,7 @@ const Result = () => {
             explanation: item.explanation,
             date: item.datetime, // 추가: 날짜 정보 전달
             bookmarked: item.bookmarked, // 추가: 북마크 여부 전달
+            updateBookmark: handleBookmark,
         });
     };
 
@@ -122,7 +107,7 @@ const Result = () => {
                 renderItem={renderItem}
                 keyExtractor={item => item.id}
             />
-            <MyBookmark data={data.filter(item => item.bookmarked)} />
+            <MyBookmark data={bookmarkedItems} />
         </View>
     );
 };
@@ -153,7 +138,7 @@ const styles = StyleSheet.create({
         borderBottomLeftRadius: 10,
     },
     smallTitle: {
-        width: 80,
+        width: "30%",
         height: 130,
         backgroundColor: '#808080',
         fontSize: 15,
@@ -163,6 +148,7 @@ const styles = StyleSheet.create({
         borderBottomRightRadius: 10,
         left: -5,
         color: 'white',
+        paddingHorizontal: 5, // 텍스트 가운데 정렬을 위한 수정
     },
     dateContainer: {
         position: 'absolute',

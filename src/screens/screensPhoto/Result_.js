@@ -1,11 +1,22 @@
-import React from 'react';
+import React, { useState,  useEffect } from 'react';
 import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const Result_ = ({ route }) => {
     const navigation = useNavigation();
-    const { title, image, explanation, date, bookmarked  } = route.params;
+    const { title, image, explanation, date, bookmarked } = route.params;
+
+    const [isBookmarked, setIsBookmarked] = useState(bookmarked);
+
+    useEffect(() => {
+        setIsBookmarked(bookmarked);
+    }, [bookmarked]);
+
+    const toggleBookmark = () => {
+        setIsBookmarked(prevValue => !prevValue);
+        route.params.updateBookmark({ id: route.params.id, bookmarked: !isBookmarked }); // 북마크 업데이트 함수 호출
+    };
 
     return (
         <ScrollView contentContainerStyle={styles.scrollViewContent}>
@@ -15,18 +26,20 @@ const Result_ = ({ route }) => {
                 </TouchableOpacity>
                 <Text style={styles.title}>{title}</Text>
                 <Image source={image} style={styles.image} />
-                <Text style={styles.explanation}>{explanation}</Text>
                 <View style={styles.infoContainer}>
                     <Text style={styles.date}>Date: {date}</Text>
                     <View style={styles.bookmarkContainer}>
                         <Text style={styles.bookmarkText}>Bookmarked: </Text>
-                        <Icon
-                            name={bookmarked ? 'bookmark' : 'bookmark-border'}
-                            size={24}
-                            color={bookmarked ? 'blue' : 'gray'}
-                        />
+                        <TouchableOpacity onPress={toggleBookmark}>
+                            <Icon
+                                name={isBookmarked ? 'bookmark' : 'bookmark-border'}
+                                size={24}
+                                color={isBookmarked ? 'blue' : 'gray'}
+                            />
+                        </TouchableOpacity>
                     </View>
                 </View>
+                <Text style={styles.explanation}>{explanation}</Text>
             </View>
         </ScrollView>
     );
@@ -51,9 +64,8 @@ const styles = StyleSheet.create({
         marginTop: 40,
     },
     image: {
-        width: 300,
+        width: '90%',
         height: 250,
-        alignItems: 'center',
         borderRadius: 10,
         marginVertical: 20,
     },
@@ -64,8 +76,20 @@ const styles = StyleSheet.create({
         color: '#2D5E40',
         borderWidth: 1,
         borderColor: '#2D5E40',
-        padding: 10,
-        width: '100%',
+        padding: 20,
+        width: '90%',
+    },
+    infoContainer: {
+        alignItems: 'flex-start',
+        margin: 10,
+        left: "-20%",
+        marginBottom: 20,
+    },
+    bookmarkContainer: {
+        flexDirection: 'row',
+    },
+    bookmarkText: { // 북마크 텍스트 스타일 추가
+        fontSize: 16,
     },
 });
 
