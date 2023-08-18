@@ -103,7 +103,7 @@ const Login = () => {
                 horizontal
                 contentContainerStyle={styles.buttonContainer}
             />
-            <Text style={styles.text}>vol.0.8</Text>
+            <Text style={styles.text}>vol.0.9</Text>
         </View>
     );
 };

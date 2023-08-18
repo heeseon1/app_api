@@ -25,7 +25,7 @@ const PrivacyPolicy = () => {
             <View style={styles.contentContainer}>
                 <Text style={styles.title}>계정 확인</Text>
                 <Text style={styles.content}>
-                App Version: vol.0.8
+                App Version: vol.0.9
                 {"\n"}
                 Platform: Android Only
                 </Text>
