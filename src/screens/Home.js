@@ -6,6 +6,7 @@ import Camera from './Camera';
 import Setting from './Setting';
 import Main from './Main';
 import MyRecord_bar from './screensMypage/MyRecord_bar';
+import Result from './screensPhoto/Result';
 
 const Tab = createBottomTabNavigator();
 
@@ -32,7 +33,7 @@ function Home() {
                 />
                 <Tab.Screen
                     name="Record"
-                    component={MyRecord_bar}
+                    component={Result}
                     options={{
                     tabBarLabel: '나의 기록',
                     tabBarIcon: ({color}) => (

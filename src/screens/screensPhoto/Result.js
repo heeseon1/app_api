@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity, FlatList, TextInput } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity, FlatList, TextInput, Modal } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import MyBookmark from '../screensMypage/MyBookmark';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
-const Result = () => {
+const Tab = createMaterialTopTabNavigator();
+
+const Result = ({route}) => {
     const navigation = useNavigation();
-    const route = useRoute();
 
     const resultData = [
         {
@@ -51,14 +54,23 @@ const Result = () => {
         },
     ];
 
-    const [data, setData] = useState(route.params?.data || resultData);
-    const [bookmarkedItems, setBookmarkedItems] = useState([]); // 북마크된 아이템들의 배열
+    const [data, setData] = useState(resultData);
+    const [bookmarkedItems, setBookmarkedItems] = useState([]);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [filteredData, setFilteredData] = useState([]);
+    const [sortAscending, setSortAscending] = useState(true); // 추가: 정렬 순서 상태
 
 
     const handleBookmark = (item) => {
         const updatedData = data.map(dataItem => {
             if (dataItem.id === item.id) {
-                return { ...dataItem, bookmarked: !dataItem.bookmarked };
+                const updatedItem = { ...dataItem, bookmarked: !dataItem.bookmarked };
+                if (updatedItem.bookmarked) {
+                    setBookmarkedItems(prevBookmarks => [...prevBookmarks, updatedItem]);
+                } else {
+                    setBookmarkedItems(prevBookmarks => prevBookmarks.filter(bookmark => bookmark.id !== item.id));
+                }
+                return updatedItem;
             }
             return dataItem;
         });
@@ -70,11 +82,71 @@ const Result = () => {
             title: item.title,
             image: item.image,
             explanation: item.explanation,
-            date: item.datetime, // 추가: 날짜 정보 전달
-            bookmarked: item.bookmarked, // 추가: 북마크 여부 전달
+            date: item.datetime,
+            bookmarked: item.bookmarked,
             updateBookmark: handleBookmark,
         });
     };
+
+    const [selectedDate, setSelectedDate] = useState(null);
+    const [isCalendarVisible, setIsCalendarVisible] = useState(false);
+
+    const handleCalendarIconPress = () => {
+        setIsCalendarVisible(true);
+    };
+
+    const handleDateSelect = (event, date) => {
+        if (date !== undefined) {
+            setSelectedDate(date);
+            setIsCalendarVisible(false);
+            // 여기서 선택한 날짜로 검색하는 로직을 수행하세요.
+            // 검색 결과를 filteredData에 업데이트하세요.
+        } else {
+            setIsCalendarVisible(false);
+        }
+    };
+
+    const handleSearch = () => {
+        let searchData = data;
+
+        // 선택한 날짜로 검색하는 로직 추가
+        if (selectedDate) {
+            const formattedSelectedDate = selectedDate.split('T')[0]; // 선택한 날짜에서 시간 부분 제거
+            searchData = data.filter(item => item.datetime.startsWith(formattedSelectedDate));
+        }
+
+        // 제목으로 검색어를 필터링
+        searchData = searchData.filter(item => item.title.includes(searchQuery));
+
+        setFilteredData(searchData);
+    };
+
+
+    const handleSortIconPress = () => {
+        const sortedData = [...data];
+        sortedData.sort((a, b) => {
+            if (sortAscending) {
+                return new Date(a.datetime) - new Date(b.datetime);
+            } else {
+                return new Date(b.datetime) - new Date(a.datetime);
+            }
+        });
+
+        setData(sortedData);
+        setSortAscending(!sortAscending);
+    };
+
+    const renderCalendarIcon = () => (
+        <TouchableOpacity onPress={handleCalendarIconPress}>
+            <Icon name="date-range" size={30} color="gray" />
+        </TouchableOpacity>
+    );
+
+    const renderSortIcon = () => (
+        <TouchableOpacity onPress={handleSortIconPress}>
+            <Icon name={sortAscending ? 'arrow-upward' : 'arrow-downward'} size={30} color="gray" />
+        </TouchableOpacity>
+    );
 
     const renderItem = ({ item }) => (
         <TouchableOpacity
@@ -91,8 +163,7 @@ const Result = () => {
                 <TouchableOpacity onPress={() => handleBookmark(item)}>
                     <Icon
                         name={item.bookmarked ? 'bookmark' : 'bookmark-border'}
-                        size={60}
-                        margin={0}
+                        size={40}
                         color={item.bookmarked ? 'blue' : 'gray'}
                     />
                 </TouchableOpacity>
@@ -101,14 +172,55 @@ const Result = () => {
     );
 
     return (
-        <View style={styles.container}>
-            <FlatList
-                data={data}
-                renderItem={renderItem}
-                keyExtractor={item => item.id}
-            />
-            <MyBookmark data={bookmarkedItems} />
-        </View>
+        <Tab.Navigator>
+            <Tab.Screen name="Result" component={() => (
+                <View style={styles.container}>
+                    <View style={styles.searchBar}>
+                        <TextInput
+                            style={styles.searchInput}
+                            placeholder="제목으로 검색"
+                            value={searchQuery}
+                            onChangeText={text => setSearchQuery(text)}
+                        />
+                        <View style={styles.iconContainer}>
+                            <TouchableOpacity onPress={handleSearch}>
+                                <Icon name="search" size={30} color="#8CB972" />
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={handleCalendarIconPress}>
+                                <Icon name="date-range" size={30} color="#8CB972" />
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={handleSortIconPress}>
+                                <Icon name={sortAscending ? 'arrow-upward' : 'arrow-downward'} size={30} color="#8CB972" />
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                    <FlatList
+                        data={filteredData.length > 0 ? filteredData : data}
+                        renderItem={renderItem}
+                        keyExtractor={item => item.id}
+                    />
+                    {isCalendarVisible && (
+                        <DateTimePicker
+                            value={selectedDate || new Date()}
+                            mode="date"
+                            display="default"
+                            onChange={handleDateSelect}
+                        />
+                    )}
+                </View>
+            )} />
+            <Tab.Screen name="MyBookmark">
+                {() => (
+                    <View style={styles.container}>
+                        <FlatList
+                            data={bookmarkedItems}
+                            renderItem={renderItem}
+                            keyExtractor={item => item.id}
+                        />
+                    </View>
+                )}
+            </Tab.Screen>
+        </Tab.Navigator>
     );
 };
 
@@ -132,7 +244,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
     },
     image: {
-        width: 180,
+        width: '60%',
         height: 130,
         borderTopLeftRadius: 10,
         borderBottomLeftRadius: 10,
@@ -175,6 +287,40 @@ const styles = StyleSheet.create({
     dateText: {
         color: 'white',
     },
+    searchBar: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 20,
+        marginBottom: 10,
+    },
+    searchInput: {
+        flex: 1,
+        borderWidth: 1,
+        borderColor: 'gray',
+        borderRadius: 5,
+        paddingHorizontal: 10,
+        marginRight: 10,
+    },
+    calendarModal: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    closeButton: {
+        marginTop: 10,
+        paddingVertical: 5,
+        paddingHorizontal: 10,
+        backgroundColor: 'gray',
+        borderRadius: 5,
+        color: 'white',
+    },
+    iconContainer: {
+        flexDirection: 'row',
+    },
 });
 
 export default Result;
+
+

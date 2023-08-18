@@ -5,7 +5,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const Result_ = ({ route }) => {
     const navigation = useNavigation();
-    const { title, image, explanation, date, bookmarked } = route.params;
+    const { title, image, explanation, date, bookmarked, updateBookmark } = route.params;
 
     const [isBookmarked, setIsBookmarked] = useState(bookmarked);
 
@@ -14,9 +14,11 @@ const Result_ = ({ route }) => {
     }, [bookmarked]);
 
     const toggleBookmark = () => {
-        setIsBookmarked(prevValue => !prevValue);
-        route.params.updateBookmark({ id: route.params.id, bookmarked: !isBookmarked }); // 북마크 업데이트 함수 호출
+        const updatedBookmark = !isBookmarked;
+        setIsBookmarked(updatedBookmark);
+        updateBookmark({ id: route.params.id, bookmarked: updatedBookmark });
     };
+    
 
     return (
         <ScrollView contentContainerStyle={styles.scrollViewContent}>
@@ -94,3 +96,7 @@ const styles = StyleSheet.create({
 });
 
 export default Result_;
+
+
+
+

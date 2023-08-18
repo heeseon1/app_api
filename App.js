@@ -3,6 +3,8 @@ import 'react-native-gesture-handler';
 import {createStackNavigator} from '@react-navigation/stack';
 import {NavigationContainer} from '@react-navigation/native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
+
 
 
 import Login from './src/screens/Login';
@@ -23,7 +25,6 @@ import Pw_reset from './src/screens/screensMypage/Pw_reset';
 
 import Result from './src/screens/screensPhoto/Result';
 
-import MyRecord_bar from './src/screens/screensMypage/MyRecord_bar';
 
 import Past_Result from './src/screens/Past_Result';
 
@@ -43,6 +44,7 @@ import SoftwareLicense from './src/screens/screensSetting/SoftwareLicense';
 import NoticeDetail from './src/screens/screensSetting/NoticeDetail';
 
 const Stack = createStackNavigator();
+const Tab = createMaterialTopTabNavigator();
 
 const App = () => {
     return (
@@ -130,12 +132,6 @@ const App = () => {
                 options={{headerShown: false}}
                 />
                 
-
-                <Stack.Screen
-                name="MyRecord_bar"
-                component={MyRecord_bar}
-                options={{headerShown: false}}
-                />
 
                 <Stack.Screen
                 name="Past_Result"
