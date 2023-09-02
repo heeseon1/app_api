@@ -1,14 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, FlatList, Switch } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import axios from 'axios';
 
 const Mypage = () => {
     const navigation = useNavigation();
     const route = useRoute();
     const [isLogoutModalVisible, setLogoutModalVisible] = useState(false);
     const [pushNotificationEnabled, setPushNotificationEnabled] = useState(true);
+    const [profileImage, setProfileImage] = useState(null);
+    const [username, setUsername] = useState('');
 
     const data = [
         {
@@ -48,6 +51,26 @@ const Mypage = () => {
         );
     };
 
+    const fetchUserProfile = async () => {
+        try {
+            // 서버에서 유저 프로필 정보를 가져오는 API 엔드포인트로 수정
+            const response = await axios.get('http://192.168.1.150:8000/accounts/profile/', {
+                headers: {
+                    Authorization: `Bearer ${route.params.token}`, // 토큰 추가
+                },
+            });
+
+            setProfileImage(response.data.profileImage);
+            setUsername(response.data.username);
+        } catch (error) {
+            console.error('프로필 정보를 불러오는 데 실패했습니다:', error);
+        }
+    };
+
+    useEffect(() => {
+        fetchUserProfile();
+    }, []);
+
     const renderItem = ({ item }) => (
         <TouchableOpacity
             style={styles.buttonContainer}
@@ -63,9 +86,9 @@ const Mypage = () => {
                 {renderBackButton()}
             </View>
             <Text style={styles.appName}>GreenDan</Text>
-            <Image source={require('../../../assets/profile_tomato.jpg')} style={styles.profileImage} />
+            <Image source={{ uri: profileImage }} style={styles.profileImage} />
             <Text style={styles.welcomeText}>환영합니다!</Text>
-            <Text style={styles.nickname}>{route.params?.newNickname || '견습농부'}</Text>
+            <Text style={styles.username}>{username}</Text>
             <FlatList
                 data={data}
                 renderItem={renderItem}

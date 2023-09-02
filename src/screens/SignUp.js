@@ -1,19 +1,59 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import {useNavigation} from '@react-navigation/native';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const SignUp = ({ navigation }) => {
-    const [nickname, setNickname] = useState('');
+const SignUp = () => {
+    const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
+    const [password1, setPassword1] = useState('');
+    const [password2, setPassword2] = useState('');
 
-    const handleSignUp = () => {
-        if (nickname.length < 1 || email.length < 1 || password.length < 1 || confirmPassword.length < 1) {
+    const navigation = useNavigation();
+    const csrfToken = '';
+
+    // 이메일 형식 검사 함수
+    const isEmailValid = (email) => {
+        const emailPattern = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
+        return emailPattern.test(email);
+    };
+
+    const handleSignUp = async () => {
+        const djServer = 'http://192.168.1.150:8000/accounts/dj-rest-auth/registration/';
+
+        try{
+            if (password1 !== password2) {
+                Alert.alert('비밀번호가 일치하지 않습니다.');
+                return;
+        }
+
+        const csrfResponse = await axios.get('http://192.168.1.150:8000/accounts/get-csrf-token/');
+        const csrfToken = csrfResponse.data.csrf_token;
+        // console.error(csrfToken);
+
+        const response = await axios.post(djServer, {
+            username: username,
+            email: email,
+            password1: password1,
+            password2: password2,
+    }, 
+    
+    {
+        headers: {
+            "Content-type": "application/json",
+            "X-CSRFToken": csrfToken,
+        },
+        
+    }
+    );
+        
+        if (username.length < 1 || email.length < 1 || password1.length < 1 || password2.length < 1) {
             Alert.alert('경고', '입력되지 않은 칸이 있습니다! 모두 입력해 주세요!', [{ text: '확인' }]);
         } else if (!isEmailValid(email)) {
             Alert.alert('경고', '이메일 형식이 아닙니다.', [{ text: '확인' }]);
-        } else if (password !== confirmPassword) {
+        } else if (password1 !== password2) {
             Alert.alert('경고', '비밀번호가 일치하지 않습니다.', [{ text: '확인' }]);
         } else {
             // 가입 처리 로직 실행 및 팝업 표시
@@ -26,12 +66,26 @@ const SignUp = ({ navigation }) => {
                 },
             ]);
         }
-    };
 
-    // 이메일 형식 검사 함수
-    const isEmailValid = (email) => {
-        const emailPattern = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
-        return emailPattern.test(email);
+        // console.error(response);
+        if (response.status === 201) {
+            const data = response.data;
+            if (data.access) {
+                await AsyncStorage.setItem('authToken', data.access);
+            } else {
+                console.error('토큰 없음');
+            }
+        } else {
+            const errorData = response.data;
+            if (errorData) {
+                const errorMessage = errorData.non_field_errors ? errorData.non_field_errors[0] : '회원가입 실패';
+                Alert.alert('오류 : ' + errorMessage);
+            }
+        }
+        
+    } catch (error) {
+        console.error('API 요청 에러 : ', error);
+    }
     };
 
     return (
@@ -45,8 +99,8 @@ const SignUp = ({ navigation }) => {
             <TextInput
                 style={styles.input}
                 placeholder="닉네임"
-                value={nickname}
-                onChangeText={setNickname}
+                value={username}
+                onChangeText={setUsername}
             />
             <TextInput
                 style={styles.input}
@@ -58,15 +112,15 @@ const SignUp = ({ navigation }) => {
                 style={styles.input}
                 placeholder="비밀번호"
                 secureTextEntry
-                value={password}
-                onChangeText={setPassword}
+                value={password1}
+                onChangeText={setPassword1}
             />
             <TextInput
                 style={styles.input}
                 placeholder="비밀번호 재확인"
                 secureTextEntry
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
+                value={password2}
+                onChangeText={setPassword2}
             />
 
             <TouchableOpacity style={styles.signUpButton} onPress={handleSignUp}>
@@ -75,6 +129,7 @@ const SignUp = ({ navigation }) => {
         </View>
     );
 };
+
 
 const styles = StyleSheet.create({
     container: {

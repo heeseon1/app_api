@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState , useEffect} from 'react';
 import {
     View,
     Text,
@@ -11,11 +11,29 @@ import {
 } from 'react-native';
 import Input, { KeyboardTypes, ReturnKeyTypes } from '../components/Input';
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Login = () => {
     const navigation = useNavigation();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [token, setToken] = useState('');
+
+    useEffect(() => {
+        const getToken = async () => {
+            try {
+                const accessToken = await AsyncStorage.getItem('authoToken');
+                if (accessToken !== null) {
+                    setToken(accessToken);
+                } else {
+                    console.error('authToken이 없음!!');
+                }
+            } catch (error) {
+                console.error('토큰 에러 : ', error);
+            }
+        };
+        getToken();
+    }, []);
 
     const isEmailValid = email => {
         const emailPattern = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
@@ -26,24 +44,46 @@ const Login = () => {
         return email.length > 0 && password.length > 0 && isEmailValid(email);
     };
 
-    const hanndleTermsScreen = () => {
+    const handleTermsScreen = () => {
         navigation.navigate('TermsScreen');
     };
 
     // ... (이전 코드)
 
-    const handleMainScreen = () => {
-        if (!isLoginEnabled()) {
-            if (email.length === 0 || password.length === 0) {
-                Alert.alert('로그인 실패', '아이디와 비밀번호를 모두 입력해주세요.', [{ text: '확인' }]);
-            } else if (!isEmailValid(email)) {
-                Alert.alert('로그인 실패', '올바른 이메일 형식이 아닙니다. 다시 확인해주세요.', [{ text: '확인' }]);
+    const handleMainScreen = async () => {
+        try {
+            const headers = new Headers({
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            });
+
+            const djServer = await fetch('http:192.168.1.13:8000/accounts/dj-rest-auth/login/', {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({
+                    email,
+                    password,
+                }),
+            });
+
+            if (!isLoginEnabled()) {
+                if (email.length === 0 || password.length === 0) {
+                    Alert.alert('로그인 실패', '아이디와 비밀번호를 모두 입력해주세요.', [{ text: '확인' }]);
+                } else if (!isEmailValid(email)) {
+                    Alert.alert('로그인 실패', '올바른 이메일 형식이 아닙니다. 다시 확인해주세요.', [{ text: '확인' }]);
+                }
+            } else {
+                // Simulate a successful login
+                Alert.alert('로그인 성공', '로그인에 성공했습니다.', [{ text: '확인' }]);
             }
-        } else {
-            // Simulate a successful login
-            Alert.alert('로그인 성공', '로그인에 성공했습니다.', [{ text: '확인' }]);
-            navigation.navigate('Home');
-        }
+
+            if (Response.status === 200) {
+                navigation.navigate('Home', {token});
+            } else {
+                const responseData = await response.json();
+                console.error('API 요청 실패 : ', responseData);
+            }
+        } catch (error)
     };
 
 // ... (나머지 코드)
@@ -54,7 +94,7 @@ const Login = () => {
     };
 
     const data = [
-        { key: 'SignUp', title: '회원 가입', onPress: hanndleTermsScreen },
+        { key: 'SignUp', title: '회원 가입', onPress: handleTermsScreen },
         { key: 'PwFind', title: '비밀번호 찾기', onPress: handlePW_findScreen },
     ];
 

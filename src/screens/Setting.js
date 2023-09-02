@@ -1,14 +1,15 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
-const CustomButton = ({ title, screenName }) => {
+const CustomButton = ({ title, screenName, userToken }) => {
     const navigation = useNavigation();
 
     const handlePress = () => {
-        navigation.navigate(screenName);
+        navigation.navigate(screenName, { userToken });
     };
 
     return (
@@ -20,10 +21,29 @@ const CustomButton = ({ title, screenName }) => {
 };
 
 const OtherScreen = () => {
+    const [userToken, setUserToken] = useState(null);
+
+    useEffect(() => {
+        const getToken = async () => {
+            try {
+                const accessToken = await AsyncStorage.getItem('authToken');
+                if (accessToken !== null) {
+                    setUserToken(accessToken); // 토큰 값을 상태에 설정
+                } else {
+                    console.error('authToken이 없음!!');
+                }
+            } catch (error) {
+                console.error('토큰 에러 : ', error);
+            }
+        };
+        getToken();
+    }, []);
+
+    
     return (
         <View style={styles.container}>
             <View style={styles.buttonsContainer}>
-                <CustomButton title="계정 확인" screenName="Mypage" />
+                <CustomButton title="계정 확인" screenName="Mypage" token={userToken}/>
                 <CustomButton title="환경설정" screenName="Configuration" />
                 <CustomButton title="공지사항" screenName="Notice" />
                 <CustomButton title="문의하기" screenName="Inquiry" />

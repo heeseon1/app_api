@@ -229,13 +229,17 @@
             </View>
             )}
         />
-        <Tab.Screen name="MyBookmark">
+        <Tab.Screen 
+        name="MyBookmark"
+        options={{tabBarLabel: '북마크',}}
+        
+        >
             {() => (
             <View style={styles.container}>
                 <FlatList
                 data={bookmarkedItems}
                 renderItem={renderItem}
-                keyExtractor={item => item.id}
+                keyExtractor={(item) => item.id}
                 />
             </View>
             )}
