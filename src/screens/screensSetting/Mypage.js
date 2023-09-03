@@ -54,7 +54,7 @@ const Mypage = () => {
     const fetchUserProfile = async () => {
         try {
             // 서버에서 유저 프로필 정보를 가져오는 API 엔드포인트로 수정
-            const response = await axios.get('http://192.168.1.150:8000/accounts/profile/', {
+            const response = await axios.get('http://192.168.1.102:8000/accounts/profile/', {
                 headers: {
                     Authorization: `Bearer ${route.params.token}`, // 토큰 추가
                 },

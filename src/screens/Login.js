@@ -1,9 +1,7 @@
-import React, { useState , useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-    View,
-    Text,
-    StyleSheet,
-    Image,
+    View,Text,
+    StyleSheet,Image,
     TouchableOpacity,
     FlatList,
     Alert,
@@ -13,7 +11,7 @@ import Input, { KeyboardTypes, ReturnKeyTypes } from '../components/Input';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const Login = () => {
+const LoginScreen = () => {
     const navigation = useNavigation();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -22,7 +20,7 @@ const Login = () => {
     useEffect(() => {
         const getToken = async () => {
             try {
-                const accessToken = await AsyncStorage.getItem('authoToken');
+                const accessToken = await AsyncStorage.getItem('authToken');
                 if (accessToken !== null) {
                     setToken(accessToken);
                 } else {
@@ -48,16 +46,15 @@ const Login = () => {
         navigation.navigate('TermsScreen');
     };
 
-    // ... (이전 코드)
 
-    const handleMainScreen = async () => {
+    const handleLogin = async () => {
         try {
             const headers = new Headers({
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`,
             });
 
-            const djServer = await fetch('http:192.168.1.13:8000/accounts/dj-rest-auth/login/', {
+            const djServer = await fetch('http://192.168.1.102:8000/accounts/dj-rest-auth/login/', {
                 method: 'POST',
                 headers,
                 body: JSON.stringify({
@@ -77,17 +74,16 @@ const Login = () => {
                 Alert.alert('로그인 성공', '로그인에 성공했습니다.', [{ text: '확인' }]);
             }
 
-            if (Response.status === 200) {
+            if (djServer.status === 200) {
                 navigation.navigate('Home', {token});
             } else {
-                const responseData = await response.json();
+                const responseData = await djServer.json();
                 console.error('API 요청 실패 : ', responseData);
             }
-        } catch (error)
+        } catch (error){
+            console.error('API 요청 실패:',error )
+        }
     };
-
-// ... (나머지 코드)
-
 
     const handlePW_findScreen = () => {
         navigation.navigate('Pw_find');
@@ -131,8 +127,7 @@ const Login = () => {
             />
             <TouchableOpacity
                 style={styles.mainButton}
-                onPress={handleMainScreen}
-                
+                onPress={handleLogin}
             >
                 <Text style={styles.mainButtonText}>Login</Text>
             </TouchableOpacity>
@@ -147,6 +142,7 @@ const Login = () => {
         </View>
     );
 };
+
 
 const styles = StyleSheet.create({
     baseText: {
@@ -217,4 +213,5 @@ const styles = StyleSheet.create({
     },
 });
 
-export default Login;
+
+export default LoginScreen;
