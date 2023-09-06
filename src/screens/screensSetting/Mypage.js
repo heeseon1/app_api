@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, FlatList, Switch } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute, useFocusEffect} from '@react-navigation/native';
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
@@ -13,9 +13,8 @@ const Mypage = () => {
     const [username, setUsername] = useState('');
 
     const route = useRoute();
-    const { token, pk } = route.params;
-    console.log('사용자 토큰',{token, pk})
-
+    const { token, pk, editusername } = route.params;
+    console.log('사용자 토큰',{token, pk, profileImage, username, editusername})
 
 
     const data = [
@@ -23,6 +22,7 @@ const Mypage = () => {
             id: '1',
             title: '프로필 설정',
             screen: 'Myprofile',
+            
         },
 
         {
@@ -33,7 +33,7 @@ const Mypage = () => {
     ];
 
     const handleNavigation = (screen) => {
-        navigation.navigate(screen);
+        navigation.navigate(screen, { token, pk, username, profileImage });
     };
 
     const handleLogout = () => {
@@ -62,7 +62,7 @@ const Mypage = () => {
 
         try {
             // 서버에서 유저 프로필 정보를 가져오는 API 엔드포인트로 수정
-            const djServer = await fetch(`http://172.30.1.7:8000/accounts/profile/${pk}/`, {
+            const djServer = await fetch(`http://192.168.200.182:8000/accounts/profile/${pk}/`, {
                 method: 'GET',
                 headers: {
                     Authorization: `Bearer ${token}` // 토큰 추가
@@ -76,7 +76,6 @@ const Mypage = () => {
                     const username = userData.result.username;
                     setProfileImage(profileImage);
                     setUsername(username);
-
                     console.log(username);
             }
                
@@ -91,7 +90,9 @@ const Mypage = () => {
 
     useEffect(() => {
         fetchUserProfile(pk)
-    }, []);
+        setUsername(editusername);
+    }, [editusername]);
+    
 
 
     const renderItem = ({ item }) => (

@@ -1,17 +1,26 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Image, TextInput, Modal, FlatList, StyleSheet, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, useFocusEffect  } from '@react-navigation/native';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 
 const MyProfile = () => {
     const [isEditing, setIsEditing] = useState(false);
-    const [nickname, setNickname] = useState('견습농부');
-    const [profileImage, setProfileImage] = useState(require('../../../assets/profile_tomato.jpg'));
+    const [Nickname, setNickname] = useState(username);
     const [isModalVisible, setIsModalVisible] = useState(false);
-    const [newNickname, setNewNickname] = useState('');
+    const [editusername, setNewUsername] = useState('');
 
     const navigation = useNavigation();
+
+    const route = useRoute();
+    const { token, pk, username, profileImage } = route.params;
+
+    useFocusEffect(
+        React.useCallback(() => {
+            setNickname(username);
+        }, [username])
+    );
+
 
     const openCamera = () => {
         const options = {
@@ -50,12 +59,12 @@ const MyProfile = () => {
     };
 
     const handleNicknameChange = (text) => {
-        setNewNickname(text);
+        setNewUsername(text);
     };
 
     const handleSaveNickname = () => {
-        if (newNickname) {
-            setNickname(newNickname);
+        if (editusername) {
+            setNickname(editusername);
             setIsEditing(false);
         }
     };
@@ -64,17 +73,32 @@ const MyProfile = () => {
         setIsEditing(false);
     };
 
-    const handleSaveProfile = () => {
-        if (newNickname || profileImage.uri) {
-            if (newNickname) {
-                setNickname(newNickname);
-                navigation.navigate('Mypage', { newNickname }); // 닉네임 값 전달
+    const handleSaveProfile = async () => {
+        if (editusername) {
+            try {
+                const djServer = await fetch('http://192.168.200.182:8000/accounts/change/username/', {
+                    method: 'PUT',
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ newUsername: editusername }),
+                });
+                
+                if (djServer.status === 200) {
+                    setNickname(editusername);
+                    console.log('닉네임이 업데이트되었습니다.');
+                    navigation.navigate('Mypage', { editusername, token, pk });
+                } else {
+                    console.error('닉네임 업데이트 실패');
+                }
+            } catch (error) {
+                console.error('닉네임 업데이트 중 오류:', error);
             }
-            setIsModalVisible(false);
-            Alert.alert('프로필 수정 완료', '프로필이 수정되었습니다!');
-        } else {
-            setIsModalVisible(false);
         }
+
+        setIsModalVisible(false);
+        Alert.alert('프로필 수정 완료', '프로필이 수정되었습니다!');
     };
 
     const handleConfirmGoBack = () => {
@@ -82,7 +106,7 @@ const MyProfile = () => {
             '프로필 수정',
             '프로필 수정을 완료하시겠습니까?',
             [
-                { text: '확인', onPress: () => navigation.goBack() }, // 이전 화면으로 이동 로직 추가
+                { text: '확인', onPress: handleSaveProfile }, // 이전 화면으로 이동 로직 추가
                 { text: '취소', onPress: () => {} },
             ]
         );
@@ -125,16 +149,16 @@ const MyProfile = () => {
                     <View style={styles.editNicknameRow}>
                         <TextInput
                             style={styles.editNicknameInput}
-                            value={newNickname}
+                            value={editusername}
                             onChangeText={handleNicknameChange}
                             placeholder="새 닉네임 입력"
                             placeholderTextColor="gray"
                         />
                         <View style={styles.editNicknameButtonGroup}>
                             <TouchableOpacity
-                                style={[styles.editNicknameButton, styles.confirmButton, { backgroundColor: newNickname ? 'black' : 'gray' }]}
+                                style={[styles.editNicknameButton, styles.confirmButton, { backgroundColor: editusername ? 'black' : 'gray' }]}
                                 onPress={handleSaveNickname}
-                                disabled={!newNickname}
+                                disabled={!editusername}
                             >
                                 <Text style={styles.buttonText}>완료</Text>
                             </TouchableOpacity>
@@ -145,7 +169,7 @@ const MyProfile = () => {
                     </View>
                 ) : (
                     <View style={styles.nicknameRow}>
-                        <Text style={styles.nicknameText}>{nickname}</Text>
+                        <Text style={styles.nicknameText}>{Nickname}</Text>
                         <TouchableOpacity onPress={handleEditNickname}>
                             <Text style={styles.editNicknameText}>닉네임 수정</Text>
                         </TouchableOpacity>
@@ -293,8 +317,7 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         fontSize: 28,
     },
-    buttonText2: {
-    },
+    buttonText2: {},
     editNicknameButtonGroup: {
         flexDirection: 'column',
         alignItems: 'center',

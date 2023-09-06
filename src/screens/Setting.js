@@ -11,7 +11,6 @@ const CustomButton = ({ title, screenName, initialParams}) => {
     const handlePress = () => {
         if (screenName === 'Mypage') {
             navigation.navigate(screenName, initialParams);
-            console.log('토큰5',initialParams)
         } else {
             navigation.navigate(screenName);
         }
@@ -27,8 +26,7 @@ const CustomButton = ({ title, screenName, initialParams}) => {
 
 const OtherScreen = ({route}) => {
     const { token, pk } = route.params;
-    console.log("설정토큰", token);
-    console.log("설정pk값", pk);
+
   
 
 

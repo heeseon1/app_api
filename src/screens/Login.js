@@ -56,7 +56,7 @@ const LoginScreen = () => {
                 'Authorization': `Bearer ${token}`,
             });
 
-            const djServer = await fetch('http://172.30.1.7:8000/accounts/dj-rest-auth/login/', {
+            const djServer = await fetch('http://192.168.200.182:8000/accounts/dj-rest-auth/login/', {
                 method: 'POST',
                 headers,
                 body: JSON.stringify({

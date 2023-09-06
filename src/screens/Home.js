@@ -14,9 +14,6 @@ const Tab = createBottomTabNavigator();
 
 function Home({route}) {
     const { token, pk } = route.params;
-    console.log('토큰:', token);
-    console.log('토큰:', pk);
-
 
     return (
         <>
