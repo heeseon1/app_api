@@ -1,15 +1,20 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useReducer, useState } from 'react';
 import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
-const CustomButton = ({ title, screenName, userToken }) => {
+const CustomButton = ({ title, screenName, initialParams}) => {
     const navigation = useNavigation();
 
+
     const handlePress = () => {
-        navigation.navigate(screenName, { userToken });
+        if (screenName === 'Mypage') {
+            navigation.navigate(screenName, initialParams);
+            console.log('토큰5',initialParams)
+        } else {
+            navigation.navigate(screenName);
+        }
     };
 
     return (
@@ -20,30 +25,17 @@ const CustomButton = ({ title, screenName, userToken }) => {
     );
 };
 
-const OtherScreen = () => {
-    const [userToken, setUserToken] = useState(null);
+const OtherScreen = ({route}) => {
+    const { token, pk } = route.params;
+    console.log("설정토큰", token);
+    console.log("설정pk값", pk);
+  
 
-    useEffect(() => {
-        const getToken = async () => {
-            try {
-                const accessToken = await AsyncStorage.getItem('authToken');
-                if (accessToken !== null) {
-                    setUserToken(accessToken); // 토큰 값을 상태에 설정
-                } else {
-                    console.error('authToken이 없음!!');
-                }
-            } catch (error) {
-                console.error('토큰 에러 : ', error);
-            }
-        };
-        getToken();
-    }, []);
 
-    
     return (
         <View style={styles.container}>
             <View style={styles.buttonsContainer}>
-                <CustomButton title="계정 확인" screenName="Mypage" token={userToken}/>
+                <CustomButton title="계정 확인" screenName="Mypage" initialParams={{ token: token, pk }}/>
                 <CustomButton title="환경설정" screenName="Configuration" />
                 <CustomButton title="공지사항" screenName="Notice" />
                 <CustomButton title="문의하기" screenName="Inquiry" />

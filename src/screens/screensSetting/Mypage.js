@@ -3,15 +3,20 @@ import { View, Text, Image, TouchableOpacity, StyleSheet, FlatList, Switch } fro
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import axios from 'axios';
+
 
 const Mypage = () => {
     const navigation = useNavigation();
-    const route = useRoute();
     const [isLogoutModalVisible, setLogoutModalVisible] = useState(false);
     const [pushNotificationEnabled, setPushNotificationEnabled] = useState(true);
     const [profileImage, setProfileImage] = useState(null);
     const [username, setUsername] = useState('');
+
+    const route = useRoute();
+    const { token, pk } = route.params;
+    console.log('사용자 토큰',{token, pk})
+
+
 
     const data = [
         {
@@ -19,6 +24,7 @@ const Mypage = () => {
             title: '프로필 설정',
             screen: 'Myprofile',
         },
+
         {
             id: '2',
             title: '비밀번호 재설정',
@@ -51,25 +57,42 @@ const Mypage = () => {
         );
     };
 
-    const fetchUserProfile = async () => {
+    const fetchUserProfile = async (pk) => {
+        
+
         try {
             // 서버에서 유저 프로필 정보를 가져오는 API 엔드포인트로 수정
-            const response = await axios.get('http://192.168.1.102:8000/accounts/profile/', {
+            const djServer = await fetch(`http://172.30.1.7:8000/accounts/profile/${pk}/`, {
+                method: 'GET',
                 headers: {
-                    Authorization: `Bearer ${route.params.token}`, // 토큰 추가
+                    Authorization: `Bearer ${token}` // 토큰 추가
                 },
             });
 
-            setProfileImage(response.data.profileImage);
-            setUsername(response.data.username);
+            if (djServer.status === 200) {
+                const userData = await djServer.json(); // JSON 응답 파싱
+                if (userData.result) { 
+                    const profileImage = userData.result.profileImage;
+                    const username = userData.result.username;
+                    setProfileImage(profileImage);
+                    setUsername(username);
+
+                    console.log(username);
+            }
+               
+            } else {
+                console.error('사용자 정보를 불러오는 데 실패했습니다.');
+            }
         } catch (error) {
-            console.error('프로필 정보를 불러오는 데 실패했습니다:', error);
-        }
-    };
+            console.error('사용자 정보를 불러오는 데 실패했습니다1:', error);
+        }};
+
+           
 
     useEffect(() => {
-        fetchUserProfile();
+        fetchUserProfile(pk)
     }, []);
+
 
     const renderItem = ({ item }) => (
         <TouchableOpacity
@@ -227,4 +250,3 @@ const styles = StyleSheet.create({
 });
 
 export default Mypage;
-

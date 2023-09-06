@@ -7,7 +7,6 @@ import {
     Alert,
     TextInput,
 } from 'react-native';
-import Input, { KeyboardTypes, ReturnKeyTypes } from '../components/Input';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -22,7 +21,9 @@ const LoginScreen = () => {
             try {
                 const accessToken = await AsyncStorage.getItem('authToken');
                 if (accessToken !== null) {
+                    console.log('토큰을 성공적으로 가져왔습니다:', accessToken);
                     setToken(accessToken);
+            
                 } else {
                     console.error('authToken이 없음!!');
                 }
@@ -31,6 +32,7 @@ const LoginScreen = () => {
             }
         };
         getToken();
+
     }, []);
 
     const isEmailValid = email => {
@@ -54,7 +56,7 @@ const LoginScreen = () => {
                 'Authorization': `Bearer ${token}`,
             });
 
-            const djServer = await fetch('http://192.168.1.102:8000/accounts/dj-rest-auth/login/', {
+            const djServer = await fetch('http://172.30.1.7:8000/accounts/dj-rest-auth/login/', {
                 method: 'POST',
                 headers,
                 body: JSON.stringify({
@@ -71,15 +73,27 @@ const LoginScreen = () => {
                 }
             } else {
                 // Simulate a successful login
-                Alert.alert('로그인 성공', '로그인에 성공했습니다.', [{ text: '확인' }]);
-            }
 
-            if (djServer.status === 200) {
-                navigation.navigate('Home', {token});
-            } else {
-                const responseData = await djServer.json();
-                console.error('API 요청 실패 : ', responseData);
-            }
+                if (djServer.status === 200) {
+                    const responseData = await djServer.json();
+                    const accessToken = responseData.access;
+                    const pk = responseData.user.pk;
+
+
+                    if (accessToken) {
+                        await AsyncStorage.setItem('authToken', accessToken); // AsyncStorage에 저장
+                        navigation.navigate('Home', { token: accessToken, pk});
+
+
+                    } else {
+                        console.error('토큰이 정의되지 않았습니다.');
+                    }
+
+
+                } else {
+                    const responseData = await djServer.json();
+                    console.error('API 요청 실패 : ', responseData);
+                }};
         } catch (error){
             console.error('API 요청 실패:',error )
         }
@@ -111,8 +125,6 @@ const LoginScreen = () => {
                 title={'이메일'}
                 style={styles.input}
                 placeholder="your@mail.com"
-                keyboardType={KeyboardTypes.EMAIL}
-                returnKeyType={ReturnKeyTypes.NEXT}
                 value={email}
                 onChangeText={text => setEmail(text)}
             />
@@ -120,7 +132,6 @@ const LoginScreen = () => {
                 title={'비밀번호'}
                 style={styles.input}
                 placeholder="pw"
-                returnKeyType={ReturnKeyTypes.DONE}
                 secureTextEntry
                 value={password}
                 onChangeText={text => setPassword(text)}

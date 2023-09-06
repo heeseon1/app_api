@@ -1,6 +1,8 @@
 import React from 'react';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { useNavigation } from '@react-navigation/native';
+import { useRoute } from '@react-navigation/native';
 
 import Camera from './Camera';
 import Setting from './Setting';
@@ -9,7 +11,13 @@ import Result from './Result';
 
 const Tab = createBottomTabNavigator();
 
-function Home() {
+
+function Home({route}) {
+    const { token, pk } = route.params;
+    console.log('토큰:', token);
+    console.log('토큰:', pk);
+
+
     return (
         <>
         <Tab.Navigator
@@ -49,9 +57,11 @@ function Home() {
                 ),
             }}
             />
+
             <Tab.Screen
             name="Setting"
             component={Setting}
+            initialParams={{ token: token, pk }}
             options={{
                 tabBarLabel: '설정',
                 tabBarIcon: ({color}) => (
@@ -59,6 +69,7 @@ function Home() {
                 ),
             }}
             />
+
         </Tab.Navigator>
         </>
     );
