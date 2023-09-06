@@ -1,33 +1,54 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { useRoute, useNavigation } from '@react-navigation/native';
 
-const Pw_reset = ({ navigation }) => {
-    const [currentPassword, setCurrentPassword] = useState('');
-    const [newPassword, setNewPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
+const Pw_reset = ({ navigation, route }) => {
+    const [basepassword, setPassword] = useState('');
+    const [new_password1, setNewPassword1] = useState('');
+    const [new_password2, setNewPassword2] = useState('');
 
-    const handleResetPassword = () => {
-        if (newPassword !== currentPassword) {
-            if (newPassword === confirmPassword) {
-                // 비밀번호 재설정 로직을 여기에 추가하세요
-                Alert.alert(
-                    '비밀번호 변경 완료',
-                    '비밀번호가 변경되었습니다.',
-                    [
-                        {
-                            text: '확인',
-                            onPress: () => navigation.goBack(),
-                        },
-                    ]
-                );
-            } else {
-                Alert.alert('비밀번호 확인', '입력한 비밀번호가 일치하지 않습니다.');
-            }
-        } else {
-            Alert.alert('비밀번호 확인', '기존 비밀번호와 새 비밀번호는 같을 수 없습니다.');
-        }
-    };
+    const { token } = route.params;
+
+    const handleResetPassword = async () => {
+        try {
+            if (new_password1 === basepassword) {
+                Alert.alert('비밀번호 변경 실패', '현재 비밀번호와 새 비밀번호는 같을 수 없습니다.');
+                return;
+              }
+
+              if (new_password1 !== new_password2) {
+                Alert.alert('비밀번호 확인', '새 비밀번호가 일치하지 않습니다.');
+                return;
+              }
+
+              const djServer = await fetch('http://192.168.200.182:8000/accounts/dj-rest-auth/password/change/', {
+                method: 'POST',
+                headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                new_password1: new_password1,
+                new_password2: new_password2,
+        }),
+      });
+
+      if (djServer.status === 200) {
+        Alert.alert('비밀번호 변경 완료', '비밀번호가 변경되었습니다.', [
+          {
+            text: '확인',
+            onPress: () => navigation.goBack(),
+          },
+        ]);
+      } else {
+        Alert.alert('비밀번호 변경 실패', '비밀번호 변경에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('비밀번호 변경 중 오류 발생:', error);
+    }
+  };
+          
 
     return (
         <View style={styles.container}>
@@ -37,27 +58,27 @@ const Pw_reset = ({ navigation }) => {
                 style={styles.input}
                 placeholder="기존 비밀번호"
                 secureTextEntry={true}
-                value={currentPassword}
-                onChangeText={text => setCurrentPassword(text)}
+                value={basepassword}
+                onChangeText={text => setPassword(text)}
             />
             <TextInput
                 style={styles.input}
                 placeholder="새 비밀번호"
                 secureTextEntry={true}
-                value={newPassword}
-                onChangeText={text => setNewPassword(text)}
+                value={new_password1}
+                onChangeText={text => setNewPassword1(text)}
             />
             <TextInput
                 style={styles.input}
                 placeholder="비밀번호 확인"
                 secureTextEntry={true}
-                value={confirmPassword}
-                onChangeText={text => setConfirmPassword(text)}
+                value={new_password2}
+                onChangeText={text => setNewPassword2(text)}
             />
             <TouchableOpacity
-                style={[styles.resetButton, { backgroundColor: newPassword === confirmPassword && newPassword !== '' ? 'blue' : 'gray' }]}
+                style={[styles.resetButton, { backgroundColor: new_password1 === new_password2 && new_password1 !== '' ? 'blue' : 'gray' }]}
                 onPress={handleResetPassword}
-                disabled={newPassword !== confirmPassword || newPassword === ''}
+                disabled={new_password1 !== new_password2 || new_password1 === ''}
             >
                 <Text style={styles.resetButtonText}>비밀번호 재설정</Text>
             </TouchableOpacity>
@@ -79,7 +100,7 @@ const styles = StyleSheet.create({
         width: 150,
         height: 150,
         marginBottom: 10,
-        opacity: 0.6, // 로고 이미지에 투명도 추가
+        opacity: 0.6,
     },
     appName: {
         fontSize: 40,
