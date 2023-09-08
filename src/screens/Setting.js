@@ -24,7 +24,8 @@ const CustomButton = ({ title, screenName, initialParams}) => {
     );
 };
 
-const OtherScreen = ({route}) => {
+const OtherScreen = () => {
+    const route = useRoute();
     const { token, pk } = route.params;
 
   
@@ -37,7 +38,7 @@ const OtherScreen = ({route}) => {
                 <CustomButton title="환경설정" screenName="Configuration" />
                 <CustomButton title="공지사항" screenName="Notice" />
                 <CustomButton title="문의하기" screenName="Inquiry" />
-                <CustomButton title="이용방법" screenName="UseGuide" />
+                <CustomButton title="이용방법" screenName="UseGuide" initialParams={{ token: token, pk }}/>
                 <CustomButton title="이용약관" screenName="TermsOfUse" />
                 <CustomButton title="개인정보활용방침" screenName="PrivacyPolicy" />
                 <CustomButton title="소프트웨어 라이선스" screenName="SoftwareLicense" />

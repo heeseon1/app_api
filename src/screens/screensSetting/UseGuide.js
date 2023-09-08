@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import {useNavigation} from '@react-navigation/native';
+import {useNavigation, useRoute} from '@react-navigation/native';
 
 import Main from '../Main';
 import Result from '../Result';
@@ -10,6 +10,7 @@ import Setting from '../Setting';
 
 const UseGuide = () => {
     const navigation = useNavigation();
+    const route = useRoute();
     const [popupIndex, setPopupIndex] = useState(0);
 
     const handleBack = () => {
@@ -114,7 +115,7 @@ const UseGuide = () => {
         <View style={styles.container}>
         {/* 배경 화면 */}
         {popupIndex === 0 && <Main />}
-        {popupIndex === 1 && <MyRecord_bar />}
+        {popupIndex === 1 && <Result />}
         {popupIndex === 2 && <Camera />}
         {popupIndex === 3 && <Setting />}
 

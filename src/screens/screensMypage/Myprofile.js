@@ -1,24 +1,55 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Image, TextInput, Modal, FlatList, StyleSheet, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useNavigation, useRoute, useFocusEffect  } from '@react-navigation/native';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
+import { PERMISSIONS, RESULTS, check, request } from 'react-native-permissions';
 
 const MyProfile = () => {
+    const [response, setResponse] = useState(null); 
     const [isEditing, setIsEditing] = useState(false);
-    const [Nickname, setNickname] = useState(username);
+    const [Nickname, setNickname] = useState(username); //바꾼이름
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [editusername, setNewUsername] = useState('');
+    const [image, setImage] = useState(null); //바꾼이미지
+
+    const [imageUrl, setImageUrl] = useState(null);
+    const [imageBase64, setImageBase64] = useState(null);
 
     const navigation = useNavigation();
 
     const route = useRoute();
-    const { token, pk, username, profileImage } = route.params;
+    const { token, pk, username, profileImage } = route.params; //기존 이름, 이미지
 
+    useEffect(() => {
+        if (profileImage) {
+            const imageUrl = `http://192.168.1.103:8000${profileImage}`;
+            console.log('이미지유알엘:',imageUrl)
+
+            fetch(imageUrl)
+                .then((response) => response.blob())
+                .then((blob) => {
+                    const reader = new FileReader();
+                    reader.readAsDataURL(blob);
+                    reader.onloadend = () => {
+                        const base64data = reader.result;
+                        setImageBase64(base64data);
+                    };
+                })
+                .catch((error) => {
+                    console.error('이미지 다운로드 오류:', error);
+                });
+
+            setImageUrl(imageUrl);
+        }
+    }, [profileImage]);
+
+    
     useFocusEffect(
         React.useCallback(() => {
             setNickname(username);
-        }, [username])
+            setImage(profileImage);
+        }, [username, profileImage])
     );
 
 
@@ -31,24 +62,62 @@ const MyProfile = () => {
         launchCamera(options, (response) => {
             if (!response.didCancel) {
                 const source = { uri: response.uri };
-                setProfileImage(source);
+                setImage(source);
             }
         });
     };
 
-    const openGallery = () => {
+    const openGallery = async () => {
         const options = {
             mediaType: 'photo',
             quality: 0.5,
+            includeBase64: true
         };
+    
+        try {
+            launchImageLibrary(options, async (response) => {
+                console.log(response);
+                if (response.didCancel) {
+                    return;
+                } else if (response.errorCode) {
+                    console.log('이미지 에러:', response.errorCode);
+                }
 
-        launchImageLibrary(options, (response) => {
-            if (!response.didCancel) {
-                const source = { uri: response.uri };
-                setProfileImage(source);
-            }
-        });
+                setResponse(response);
+    
+                const formData = new FormData();
+                formData.append('profileImg', {
+                    uri: response.assets[0].uri,
+                    type: response.assets[0].type,
+                    name: response.assets[0].fileName,
+                });
+    
+                try {
+                    const djServer = await fetch(`http://192.168.1.103:8000/accounts/change/profile/${pk}/`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'multipart/form-data',
+                            'Authorization': `Bearer ${token}`,
+                        },
+                        body: formData,
+                    });
+    
+                    if (djServer.status === 200) {
+                        console.log('프로필 사진 업로드 완료');
+                    } else {
+                        console.error('프로필 사진 업로드 실패');
+                    }
+                } catch (error) {
+                    console.error('프로필 사진 업로드 중 오류:', error);
+                }
+            });
+        } catch (error) {
+            console.error('갤러리 열기 중 오류:', error);
+        }
     };
+    
+
+
 
     const handleEditProfilePicture = () => {
         setIsModalVisible(true);
@@ -76,7 +145,7 @@ const MyProfile = () => {
     const handleSaveProfile = async () => {
         if (editusername) {
             try {
-                const djServer = await fetch('http://192.168.200.182:8000/accounts/change/username/', {
+                const djServer = await fetch('http://192.168.1.103:8000/accounts/change/username/', {
                     method: 'PUT',
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -88,7 +157,6 @@ const MyProfile = () => {
                 if (djServer.status === 200) {
                     setNickname(editusername);
                     console.log('닉네임이 업데이트되었습니다.');
-                    navigation.navigate('Mypage', { editusername, token, pk });
                 } else {
                     console.error('닉네임 업데이트 실패');
                 }
@@ -99,6 +167,7 @@ const MyProfile = () => {
 
         setIsModalVisible(false);
         Alert.alert('프로필 수정 완료', '프로필이 수정되었습니다!');
+        navigation.navigate('Mypage', { editusername, token, pk, image: response.assets[0].uri });
     };
 
     const handleConfirmGoBack = () => {
@@ -106,7 +175,7 @@ const MyProfile = () => {
             '프로필 수정',
             '프로필 수정을 완료하시겠습니까?',
             [
-                { text: '확인', onPress: handleSaveProfile }, // 이전 화면으로 이동 로직 추가
+                { text: '확인', onPress: () => handleSaveProfile() }, // 이전 화면으로 이동 로직 추가
                 { text: '취소', onPress: () => {} },
             ]
         );
@@ -133,12 +202,16 @@ const MyProfile = () => {
             </View>
             <View style={styles.profileImageContainer}>
                 <TouchableOpacity onPress={handleEditProfilePicture}>
-                    {profileImage ? ( // profileImage가 null 또는 정의되지 않았는지 확인
-                        <Image source={profileImage} style={styles.profileImage} />
+                    {response ? ( 
+                         <Image source={{ uri: response.assets[0].uri }} style={styles.profileImage} />
+                    ) : profileImage ? (
+                        <Image source={{ uri: imageUrl }} style={styles.profileImage} />
                     ) : (
                         <View style={styles.profileImagePlaceholder}>
+                            
                             <Icon name="person" size={120} color="white" />
                         </View>
+
                     )}
                     <Icon name="camera" size={24} color="white" style={styles.cameraIcon} />
                 </TouchableOpacity>

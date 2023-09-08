@@ -9,12 +9,12 @@ const Mypage = () => {
     const navigation = useNavigation();
     const [isLogoutModalVisible, setLogoutModalVisible] = useState(false);
     const [pushNotificationEnabled, setPushNotificationEnabled] = useState(true);
-    const [profileImage, setProfileImage] = useState(null);
+    const [profileImage, setProfileImage] = useState('');
     const [username, setUsername] = useState('');
 
     const route = useRoute();
-    const { token, pk, editusername } = route.params;
-    console.log('사용자 토큰',{token, pk, profileImage, username, editusername})
+    const { token, pk, editusername, image } = route.params;
+
 
 
     const data = [
@@ -62,7 +62,7 @@ const Mypage = () => {
 
         try {
             // 서버에서 유저 프로필 정보를 가져오는 API 엔드포인트로 수정
-            const djServer = await fetch(`http://192.168.200.182:8000/accounts/profile/${pk}/`, {
+            const djServer = await fetch(`http://192.168.1.103:8000/accounts/profile/${pk}/`, {
                 method: 'GET',
                 headers: {
                     Authorization: `Bearer ${token}` // 토큰 추가
@@ -72,7 +72,7 @@ const Mypage = () => {
             if (djServer.status === 200) {
                 const userData = await djServer.json(); // JSON 응답 파싱
                 if (userData.result) { 
-                    const profileImage = userData.result.profileImage;
+                    const profileImage = userData.result.profileImg;
                     const username = userData.result.username;
                     setProfileImage(profileImage);
                     setUsername(username);
@@ -90,8 +90,9 @@ const Mypage = () => {
 
     useEffect(() => {
         fetchUserProfile(pk)
-        setUsername(editusername);
-    }, [editusername]);
+        setUsername(editusername)
+        setProfileImage(image);
+    }, [editusername,image]);
     
 
 
@@ -110,7 +111,7 @@ const Mypage = () => {
                 {renderBackButton()}
             </View>
             <Text style={styles.appName}>GreenDan</Text>
-            <Image source={{ uri: profileImage }} style={styles.profileImage} />
+            <Image source={{ uri:`http://192.168.1.103:8000${profileImage}` }} style={styles.profileImage} />
             <Text style={styles.welcomeText}>환영합니다!</Text>
             <Text style={styles.username}>{username}</Text>
             <FlatList
