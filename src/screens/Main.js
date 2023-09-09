@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,30 +11,34 @@ import {
 import {useNavigation} from '@react-navigation/native';
 import Result from './Result';
 
-const Main = () => {
-  const navigation = useNavigation();
+const Main = ({ navigation }) => {
+  const [blights, setBlights] = useState([]);
 
-  const data = [
-    {
-      id: '1',
-      title: '토마토\n잎 곰팡이병',
-      image: require('../../assets/tomatoleafmold1.jpg'),
-      explanation: `
-                잎의 일차 감염에서 꽃 (특히 종자를 생산하는 작물에서 위험) 
-                ...
-            `,
-    },
-    {
-      id: '2',
-      title: '토마토\n황화잎말이\n바이러스',
-      image: require('../../assets/yellowleafcurlVirus1.jpg'),
-      explanation: `
-                토마토 황화잎말이병은 토마토 
-                Yellow Leaf Curl Virus 
-                (TYLCV)에 의하여 발생하는 바이러스병해다.
-            `,
-    },
-  ];
+  useEffect(() => {
+    fetch('http:/192.168.200.182:8000/home/blight/')
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('네트워크 오류');
+        }
+        return response.json();
+      })
+      .then((data) => setBlights(data.result))
+      .catch((error) => console.error('요청 에러: ', error));
+  }, []);
+
+ 
+  const getImage  = (imagepath) => {
+    const navigation = useNavigation();
+    console.log(`이미지: ${imagepath}`);
+
+    try {
+      return `http://192.168.200.182:8000${imagepath}`;
+    } catch (error) {
+      console.log('이미지 URL을 가져오는 오류 발생:', error);
+    }
+  };
+
+
 
   const handleMagazine = item => {
     navigation.navigate('Magazine', {
@@ -45,64 +49,7 @@ const Main = () => {
   };
 
   const resultData = [
-    {
-      id: '1',
-      title: '토마토 잎 곰팡이병',
-      image: require('../../assets/tomatoleafmold3.jpg'),
-      explanation: `
-                잎의 일차 감염에서 꽃 (특히 종자를 생산하는 작물에서 위험) 
-                ...
-            `,
-      datetime: '2023-06-10 15:30', // 날짜 정보 추가
-      bookmarked: false, // 북마크 여부 추가
-    },
-    {
-      id: '2',
-      title: '토마토 황화잎말이 바이러스',
-      image: require('../../assets/yellowleafcurlVirus3.jpg'),
-      explanation: `
-                토마토 황화잎말이병은 토마토 
-                Yellow Leaf Curl Virus 
-                (TYLCV)에 의하여 발생하는 바이러스병해다.
-            `,
-      datetime: '2023-08-01 12:30',
-      bookmarked: false,
-    },
-    {
-      id: '3',
-      title: '토마토 황화잎말이 바이러스',
-      image: require('../../assets/yellowleafcurlVirus5.jpg'),
-      explanation: `
-                토마토 황화잎말이병은 토마토 
-                Yellow Leaf Curl Virus 
-                (TYLCV)에 의하여 발생하는 바이러스병해다.
-            `,
-      datetime: '2023-08-10 19:30',
-      bookmarked: false,
-    },
-    {
-      id: '4',
-      title: '토마토 황화잎말이 바이러스',
-      image: require('../../assets/yellowleafcurlVirus4.jpg'),
-      explanation: `
-                토마토 황화잎말이병은 토마토 
-                Yellow Leaf Curl Virus 
-                (TYLCV)에 의하여 발생하는 바이러스병해다.
-            `,
-      datetime: '2023-08-10 19:30',
-      bookmarked: false,
-    },
-    {
-      id: '5',
-      title: '토마토 잎 곰팡이병',
-      image: require('../../assets/tomatoleafmold4.jpg'),
-      explanation: `
-                잎의 일차 감염에서 꽃 (특히 종자를 생산하는 작물에서 위험) 
-                ...
-            `,
-      datetime: '2023-08-13 15:20', // 날짜 정보 추가
-      bookmarked: false, // 북마크 여부 추가
-    },
+    
   ];
 
   const handleRecord = item => {
@@ -145,11 +92,18 @@ const Main = () => {
     <ScrollView contentContainerStyle={styles.scrollViewContent}>
       <View style={styles.container}>
         <Text style={styles.title}>자주 발병하는 병해</Text>
-        <FlatList
-          data={data}
-          renderItem={renderItem}
-          keyExtractor={item => item.id}
-        />
+        {blights.map((blight) => (
+          <TouchableOpacity
+            key={blight.id}
+            onPress={() => navigation.navigate('Magazine', { blightId: blight.id })}
+          >
+            <View style={styles.imageContainer}>
+            <Image source={{ uri: getImage(blight.blight_img) }} style={styles.image} />
+            <Text style={styles.smallTitle}>{blight.name}</Text>
+            </View>
+          </TouchableOpacity>
+        ))}
+
         <Text style={styles.container2}>나의 지난 기록</Text>
         <TouchableOpacity
           onPress={handleRecord}
