@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -10,16 +10,21 @@ import {
   Modal,
   ActivityIndicator,
 } from 'react-native';
-import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
+import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import Result from './Result';
 
-const Camera = ({navigation}) => {
+const Camera = ({ navigation }) => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [showPopup, setShowPopup] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [result, setResult] = useState(null);
+  const route = useRoute();
+  const { token, email } = route.params;
+  console.log('이메일',email);
 
   const openCamera = () => {
-    launchCamera({mediaType: 'photo'}, response => {
+    launchCamera({ mediaType: 'photo' }, (response) => {
       if (!response.didCancel) {
         setSelectedImage(response.uri);
         setShowPopup(true);
@@ -27,11 +32,41 @@ const Camera = ({navigation}) => {
     });
   };
 
-  const openGallery = () => {
-    launchImageLibrary({mediaType: 'photo'}, response => {
+  const openGallery = async () => {
+    launchImageLibrary({ mediaType: 'photo' }, async (response) => {
       if (!response.didCancel) {
         setSelectedImage(response.uri);
         setShowPopup(true);
+      } 
+
+      const formData = new FormData();
+      formData.append('user_image', {
+        uri: response.assets[0].uri,
+        type: response.assets[0].type,
+        name: response.assets[0].fileName,
+      });
+      formData.append('email', email);
+      console.log('폼데이터:',formData);
+
+      try {
+        const djServer = await fetch('http://192.168.200.182:8000/photo/test/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: formData,
+        });
+
+        if (djServer.status === 200) {
+          const data = await djServer.json();
+          setResult(data);
+          console.log('데이터 확인:', data);
+        } else {
+          console.error('사진 업로드 실패');
+        }
+      } catch (error) {
+        console.error('사진 업로드 중 오류:', error);
       }
     });
   };
@@ -43,17 +78,17 @@ const Camera = ({navigation}) => {
     setTimeout(() => {
       setIsLoading(false);
       setShowPopup(false);
-      navigation.navigate('Past_Result', {selectedImage});
+      navigation.navigate('Past_Result', { token, email, result });
     }, 2000); // 2초
     // 실제 작업 코드는 여기에 작성되어야 함
   };
 
   const buttons = [
-    {key: 'camera', title: '카메라', onPress: openCamera},
-    {key: 'gallery', title: '갤러리', onPress: openGallery},
+    { key: 'camera', title: '카메라', onPress: openCamera },
+    { key: 'gallery', title: '갤러리', onPress: openGallery },
   ];
 
-  const renderItem = ({item}) => (
+  const renderItem = ({ item }) => (
     <TouchableOpacity style={styles.button} onPress={item.onPress}>
       <Text style={styles.buttonTitle}>{item.title}</Text>
     </TouchableOpacity>
@@ -64,11 +99,11 @@ const Camera = ({navigation}) => {
       <FlatList
         data={buttons}
         renderItem={renderItem}
-        keyExtractor={item => item.key}
+        keyExtractor={(item) => item.key}
         contentContainerStyle={styles.buttonContainer}
       />
-      {selectedImage && (
-        <Image source={{uri: selectedImage}} style={styles.image} />
+      {selectedImage  && (
+        <Image source={{ uri: selectedImage }} style={styles.image} />
       )}
       {showPopup && (
         <View style={styles.popup}>
@@ -76,7 +111,7 @@ const Camera = ({navigation}) => {
             식물의 상태를{'\n'}진단하시겠습니까?
           </Text>
           {selectedImage && (
-            <Image source={{uri: selectedImage}} style={styles.selectedImage} />
+            <Image source={{ uri: selectedImage }} style={styles.selectedImage} />
           )}
           <View style={styles.popupButtons}>
             <TouchableOpacity

@@ -1,27 +1,40 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { useState, useEffect } from 'react';
 
 const Past_Result = () => {
     const navigation = useNavigation();
+    const route = useRoute();
+    const { token, email, result } = route.params;
+    const [currentResult, setCurrentResult] = useState(result);
+    
+
+    useEffect(() => {
+        const unsubscribe = navigation.addListener('beforeRemove', () => {
+            setCurrentResult(null);
+        });
+
+        return unsubscribe;
+    }, [navigation]);
+    
+
+    console.log('넘겨받은 화면:', currentResult)
 
     return (
         <View style={styles.container}>
-            <TouchableOpacity style={styles.backButton} onPress={() => navigation.navigate('Home')}>
+            <TouchableOpacity style={styles.backButton} onPress={() => navigation.navigate('Home', {token, email})}>
                 <Icon name="arrow-back" size={30} color="#8CB972" />
             </TouchableOpacity>
             <Text style={styles.title}>식물 진단 결과</Text>
-            <Image source={require('../../assets/yellowleafcurlVirus4.jpg')} style={styles.image} />
-            <Text style={styles.datetime}>2023년 8월 1일 15:35</Text>
-                <Text style={styles.description}>
-                    토마토 황화잎말이 바이러스{"\n"}
-                    {"\n"}
-                    식물에 대한 진단 결과 설명이
-                    이곳에 들어갑니다.{"\n"}
-                    식물의 상태와 관련된 정보를
-                    자세히 설명해주세요.
-                </Text>
+            {currentResult &&(
+            <View>
+            <Image source={{ uri: `data:image/jpeg;base64, ${currentResult.result.ai_images[0]}` }} style={styles.image} />
+            <Text style={styles.datetime}>{currentResult.datetime}</Text>
+            <Text style={styles.description}>{currentResult.result.ai_name}</Text>
+            </View>
+            )}
         </View>
     );
 };

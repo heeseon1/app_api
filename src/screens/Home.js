@@ -13,7 +13,7 @@ const Tab = createBottomTabNavigator();
 
 
 function Home({route}) {
-    const { token, pk } = route.params;
+    const { token, pk, email } = route.params;
 
     return (
         <>
@@ -47,6 +47,7 @@ function Home({route}) {
             <Tab.Screen
             name="Camera"
             component={Camera}
+            initialParams={{ token: token, email}}
             options={{
                 tabBarLabel: '카메라',
                 tabBarIcon: ({color}) => (

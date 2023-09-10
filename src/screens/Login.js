@@ -78,11 +78,12 @@ const LoginScreen = () => {
                     const responseData = await djServer.json();
                     const accessToken = responseData.access;
                     const pk = responseData.user.pk;
+                    const email = responseData.user.email;
 
 
                     if (accessToken) {
                         await AsyncStorage.setItem('authToken', accessToken); // AsyncStorage에 저장
-                        navigation.navigate('Home', { token: accessToken, pk});
+                        navigation.navigate('Home', { token: accessToken, pk, email});
 
 
                     } else {
