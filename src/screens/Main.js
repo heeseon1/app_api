@@ -8,11 +8,13 @@ import {
   FlatList,
   ScrollView,
 } from 'react-native';
-import {useNavigation} from '@react-navigation/native';
-import Result from './Result';
+import { useRoute } from '@react-navigation/native';
+import { useFocusEffect } from '@react-navigation/native';
 
 const Main = ({ navigation }) => {
   const [blights, setBlights] = useState([]);
+  const [resultData, setResultData] = useState([]);
+  const route = useRoute();
 
   useEffect(() => {
     fetch('http:/192.168.200.182:8000/home/blight/')
@@ -26,11 +28,29 @@ const Main = ({ navigation }) => {
       .catch((error) => console.error('요청 에러: ', error));
   }, []);
 
- 
-  const getImage  = (imagepath) => {
-    const navigation = useNavigation();
-    console.log(`이미지: ${imagepath}`);
+  useFocusEffect(
+    React.useCallback(() => {
+      const { email } = route.params;
+      fetch('http://192.168.200.182:8000/home/history/')
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error('네트워크 오류');
+          }
+          return response.json();
+        })
+        .then((data) => {
+          if (data.code === 200) {
+            const filteredData = data.result.filter((item) => item.email === email);
+            setResultData(filteredData);
+          } else {
+            console.error('데이터 가져오기 실패:', data.message);
+          }
+        })
+        .catch((error) => console.error('요청 에러: ', error));
+    }, [route.params])
+  );
 
+  const getImage = (imagepath) => {
     try {
       return `http://192.168.200.182:8000${imagepath}`;
     } catch (error) {
@@ -38,9 +58,7 @@ const Main = ({ navigation }) => {
     }
   };
 
-
-
-  const handleMagazine = item => {
+  const handleMagazine = (item) => {
     navigation.navigate('Magazine', {
       title: item.title,
       image: item.image,
@@ -48,45 +66,54 @@ const Main = ({ navigation }) => {
     });
   };
 
-  const resultData = [
-    
-  ];
+  const renderItem = ({ item }) => (
+    <TouchableOpacity
+      style={styles.magazineItem}
+      onPress={() => handleMagazine(item)}
+    >
+      <View style={styles.imageContainer}>
+        <Image source={item.image} style={styles.image} />
+        <Text style={styles.smallTitle}>{item.title}</Text>
+      </View>
+    </TouchableOpacity>
+  );
 
-  const handleRecord = item => {
-    navigation.navigate('Result_', {
-      title: item.title,
-      image: item.image,
-      explanation: item.explanation,
-      date: item.datetime, // 추가: 날짜 정보 전달
-      bookmarked: item.bookmarked, // 추가: 북마크 여부 전달
-    });
+  const itemRenderer = ({ item }) => {
+    const date = new Date(item.created_at);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+  
+    const formattedDate = `Date: ${year}-${month}-${day} ${hours}:${minutes}`;
+    
+    return (
+      <TouchableOpacity
+        style={styles.magazineItem}
+        onPress={() => handleRecord(item)}
+      >
+        <View style={styles.imageContainer}>
+          <Image source={{ uri: getImage(item.history_img) }} style={styles.image} />
+          <Text style={styles.smallTitle}>{item.name}</Text>
+          <View style={styles.dateContainer}>
+            <View style={styles.dateBackground}></View>
+            <Text style={styles.dateText}>{formattedDate}</Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
   };
 
-  const renderItem = ({item}) => (
-    <TouchableOpacity
-      style={styles.magazineItem}
-      onPress={() => handleMagazine(item)}>
-      <View style={styles.imageContainer}>
-        <Image source={item.image} style={styles.image} />
-        <Text style={styles.smallTitle}>{item.title}</Text>
-      </View>
-    </TouchableOpacity>
-  );
-
-  const itemRenderer = ({item}) => (
-    <TouchableOpacity
-      style={styles.magazineItem}
-      onPress={() => handleRecord(item)}>
-      <View style={styles.imageContainer}>
-        <Image source={item.image} style={styles.image} />
-        <Text style={styles.smallTitle}>{item.title}</Text>
-        <View style={styles.dateContainer}>
-          <View style={styles.dateBackground}></View>
-          <Text style={styles.dateText}>Date: {item.datetime}</Text>
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
+  const handleRecord = (item) => {
+    navigation.navigate('Result_', {
+      title: item.name,
+      image: item.history_img,
+      explanation: item.causation,
+      date: item.created_at,
+      bookmarked: item.bookmarked,
+    });
+  };
 
   return (
     <ScrollView contentContainerStyle={styles.scrollViewContent}>
@@ -98,22 +125,18 @@ const Main = ({ navigation }) => {
             onPress={() => navigation.navigate('Magazine', { blightId: blight.id })}
           >
             <View style={styles.imageContainer}>
-            <Image source={{ uri: getImage(blight.blight_img) }} style={styles.image} />
-            <Text style={styles.smallTitle}>{blight.name}</Text>
+              <Image source={{ uri: getImage(blight.blight_img) }} style={styles.image} />
+              <Text style={styles.smallTitle}>{blight.name}</Text>
             </View>
           </TouchableOpacity>
         ))}
 
         <Text style={styles.container2}>나의 지난 기록</Text>
-        <TouchableOpacity
-          onPress={handleRecord}
-          style={styles.magazineContainer}>
-          <FlatList
-            data={resultData}
-            renderItem={itemRenderer}
-            keyExtractor={item => item.id}
-          />
-        </TouchableOpacity>
+        <FlatList
+          data={resultData}
+          renderItem={itemRenderer}
+          keyExtractor={(item) => item.id.toString()}
+        />
       </View>
     </ScrollView>
   );
@@ -153,16 +176,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     margin: 20,
   },
-  magazineText: {
-    width: 80,
-    height: 130,
-    backgroundColor: '#808080',
-    fontSize: 15,
-    textAlign: 'center',
-    textAlignVertical: 'center',
-    borderTopRightRadius: 10,
-    borderBottomRightRadius: 10,
-  },
   magazineContainer: {
     flexDirection: 'row',
   },
@@ -174,10 +187,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     flex: 1,
     paddingTop: 30,
-  },
-  magazineContainer: {
-    flexDirection: 'row',
-    left: 10,
   },
   magazineItem: {
     flexDirection: 'row',
@@ -194,10 +203,13 @@ const styles = StyleSheet.create({
     left: 0,
     width: '100%',
     height: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)', // 투명한 회색 배경
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
   },
   dateText: {
     color: 'white',
+  },
+  scrollViewContent: {
+    // 스크롤 뷰 내용 스타일
   },
 });
 

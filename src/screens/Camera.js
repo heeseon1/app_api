@@ -20,7 +20,7 @@ const Camera = ({ navigation }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState(null);
   const route = useRoute();
-  const { token, email } = route.params;
+  const { token, email, pk } = route.params;
   console.log('이메일',email);
 
   const openCamera = () => {

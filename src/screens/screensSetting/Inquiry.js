@@ -1,111 +1,111 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Modal, FlatList, Alert } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Modal, Image, Alert, FlatList } from 'react-native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Inquiry = () => {
     const navigation = useNavigation();
+    const route = useRoute();
     const [isModalVisible, setIsModalVisible] = useState(false);
-    const [checkedItems, setCheckedItems] = useState([]);
-    const [inquiryContent, setInquiryContent] = useState('');
-    const [showSubmitPopup, setShowSubmitPopup] = useState(false); // 팝업 표시 여부 상태 추가
+    const [content, setContent] = useState('');
+    const [inquiries, setInquiries] = useState([]);
+    const [title, setQnaTitle] = useState('');
 
-    const handleCheckboxToggle = (item) => {
-        const updatedCheckedItems = checkedItems.includes(item)
-            ? checkedItems.filter(checkedItem => checkedItem !== item)
-            : [...checkedItems, item];
-        
-        setCheckedItems(updatedCheckedItems);
+    const email = route.params?.email;
+
+    const fetchInquiries = async () => {
+        console.log('문의 내역 로드 시작');
+        try {
+            const response = await fetch(`http://192.168.200.182:8000/info/qna/`);
+            if (!response.ok) {
+                throw new Error('문의 내역 로드 실패');
+            }
+            const data = await response.json();
+            setInquiries(data.result);
+            console.log('응답: ', JSON.stringify(data));
+        } catch (error) {
+            console.error(`문의 내역 로드 중 오류 : ${error}`);
+        }
     };
 
-    const handleInquirySubmit = () => {
-        if (checkedItems.length === 0 || inquiryContent.length === 0) {
-            // 조건을 만족하지 않는 경우 팝업을 띄웁니다.
-            Alert.alert('문의 종류 체크와 내용을 모두 입력해주세요');
-        } else {
-            setCheckedItems([]);
-            setInquiryContent('');
+    useEffect(() => {
+        console.log('문의 내역 가져오기');
+        fetchInquiries();
+    }, [email]);
+
+    const submitInquiry = async () => {
+        try {
+            const authToken = await AsyncStorage.getItem('authToken');
+            console.log(`authToken 출력: ${authToken}`);
+            if (!authToken) {
+                console.error('authToken 없음');
+                return;
+            }
+
+            console.log('토큰 가져오기 성공', authToken);
+
+            const requestData = {
+                title: title,
+                content: content,
+                email: email,
+            };
+            console.log('email: ', email),
+            console.log('title:', title);
+            console.log('content:', content);
+
+            const response = await fetch('http://192.168.200.182:8000/info/qna/', {
+                method: 'POST',
+                body: JSON.stringify(requestData),
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authToken}`,
+                },
+            });
+            console.log(response);
+
+            if (!response.ok) {
+                throw new Error('문의 제출 실패');
+            }
+            console.log('문의 제출 성공!');
             setIsModalVisible(false);
-            showCompletionPopup();
+            await fetchInquiries();
+        } catch (error) {
+            console.error(`문의 제출 중 오류 발생: ${error}`);
+        }
+    }
+
+    const handleInquirySubmit = async () => {
+        if (title.length === 0) {
+            Alert.alert('제목을 입력해주세요');
+        } else if (content.length === 0) {
+            Alert.alert('문의 내용을 입력해주세요');
+        } else {
+            try {
+                await submitInquiry();
+                setContent('');
+                setQnaTitle('');
+                setIsModalVisible(false);
+                await fetchInquiries();
+            } catch (error) {
+                console.error(`문의 제출 중 오류 발생: ${error}`);
+                return;
+            }
         }
     };
 
     const closeSubmitPopup = () => {
-        setShowSubmitPopup(false);
+        setIsModalVisible(false);
     };
 
     const showCompletionPopup = () => {
         Alert.alert('문의가 성공적으로 작성되었습니다.');
     };
 
-    const data = [
-        { id: '오류신고', label: '오류신고' },
-        { id: '추가 기능 제안', label: '추가 기능 제안' },
-    ];
-
-    const dataInquiry = [
-        {id: '1',
-            label: '오류신고',
-            datetime: `2023-08-11 14:10`,
-            explanation: `사진을 확대하면 심하게 깨진다`,
-        },
-        {id: '2',
-            label: '오류신고',
-            datetime: `2023-08-11 19:40`,
-            explanation: `로딩 후 결과가 안나온다`,
-        },
-        {id: '3',
-            label: '오류신고',
-            datetime: `2023-08-14 13:00`,
-            explanation: `갤러리 연결이 잘안된다`,
-        },
-        {id: '4',
-            label: '추가 기능 제안',
-            datetime: `2023-08-15 11:20`,
-            explanation: `결과를 삭제하고 싶음`,
-        },
-        {id: '5',
-            label: '오류신고',
-            datetime: `2023-08-16 13:40`,
-            explanation: `카메라 작동이 잘 안된다`,
-        },
-    ];
-
-    const renderCheckbox = ({ item }) => (
-        <TouchableOpacity
-            style={[styles.checkbox, checkedItems.includes(item.id) && styles.checkedCheckbox]}
-            onPress={() => handleCheckboxToggle(item.id)}
-        >
-            <Text style={styles.checkboxLabel}>{item.label}</Text>
-        </TouchableOpacity>
-    );
-
-    const handleInquiry = (item) => {
-        navigation.navigate('Inquiry_style', {
-            label: item.label,
-            datetime: item.datetime,
-            explanation: item.explanation,
-        });
-    };
-
-    const itemRenderer = ({ item }) => (
-        <TouchableOpacity
-            style={styles.magazineItem}
-            onPress={() => handleInquiry(item)}
-        >
-            <View style={styles.containerInquriy}>
-
-                <View style={styles.dateContainer}>
-                    <Text style={styles.LabelText}>Label: {item.label}</Text>
-                    <Text style={styles.dateText}>Date: {item.datetime}</Text>
-                </View>
-                
-            </View>
-        </TouchableOpacity>
-    );
+    console.log('inquiries 배열: ', JSON.stringify(inquiries));
 
     return (
-        <ScrollView contentContainerStyle={styles.container}>
+        <View style={styles.container}>
             <View style={styles.header}>
                 <Text style={styles.appName}>문의하기</Text>
                 <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -114,68 +114,91 @@ const Inquiry = () => {
             </View>
             <View style={styles.content}>
                 <TouchableOpacity
-                        style={styles.writeButton}
-                        onPress={() => setIsModalVisible(true)}
-                    >
-                        <Text style={styles.writeButtonText}>문의 작성하기</Text>
-                    </TouchableOpacity>
+                    style={styles.writeButton}
+                    onPress={() => setIsModalVisible(true)}
+                >
+                    <Text style={styles.writeButtonText}>문의 작성하기</Text>
+                </TouchableOpacity>
             </View>
+
+            <FlatList 
+                data={inquiries}
+                keyExtractor={(item) => item.id.toString()}
+                renderItem={({item}) => {
+                    return (
+                        <TouchableOpacity
+                            style={styles.inquiryItem}
+                            onPress={() => {
+                                navigation.navigate('Inquiry_style', {
+                                    label: item.title,
+                                    datetime: item.created_at,
+                                    explanation: item.content,
+                                });
+                            }}
+                        >
+                            <Text style={styles.title}>{item.title}</Text>
+                            <Text style={styles.date}>{item.created_at}</Text>
+                        </TouchableOpacity>
+                    );
+                }}
+                contentContainerStyle={styles.flatListContent}
+            />
             <Modal
                 animationType="slide"
                 transparent={true}
                 visible={isModalVisible}
-                onRequestClose={() => setIsModalVisible(false)}
+                onRequestClose={closeSubmitPopup}
             >
                 <View style={styles.modalContainer}>
                     <TouchableOpacity
                         style={styles.closeButton}
-                        onPress={() => setIsModalVisible(false)}
+                        onPress={closeSubmitPopup}
                     >
                         <Icon name="close" size={30} color="#2D5E40" />
                     </TouchableOpacity>
                     <Text style={styles.modalTitle}>문의 작성하기</Text>
-                    <FlatList
-                        data={data}
-                        renderItem={renderCheckbox}
-                        keyExtractor={item => item.id}
-                        numColumns={2}
+
+                    <TextInput 
+                        style={styles.titleInput}
+                        placeholder="제목을 입력하세요"
+                        placeholderTextColor='gray'
+                        multiline={true}
+                        value={title}
+                        onChangeText={text => setQnaTitle(text)}
                     />
+
                     <TextInput
                         style={styles.textInput}
                         placeholder="문의 내용을 입력하세요"
                         placeholderTextColor='gray'
                         multiline={true}
-                        value={inquiryContent}
-                        onChangeText={text => setInquiryContent(text)}
+                        value={content}
+                        onChangeText={text => setContent(text)}
                     />
+
                     <TouchableOpacity
                         style={styles.submitButton}
                         onPress={handleInquirySubmit}
-                        
                     >
                         <Text style={styles.submitButtonText}>작성 완료</Text>
                     </TouchableOpacity>
                 </View>
             </Modal>
-            <TouchableOpacity onPress={handleInquiry} style={styles.magazineContainer}>
-                            <FlatList
-                            data={dataInquiry}
-                            renderItem={itemRenderer}
-                            keyExtractor={item => item.id}
-                        />
-            </TouchableOpacity>
-        </ScrollView>
+        </View>
     );
 };
 
 const styles = StyleSheet.create({
     container: {
+        flex: 1,
         padding: 20,
+        justifyContent: 'flex-start',
     },
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
+        marginBottom: 20,
     },
     appName: {
         fontSize: 20,
@@ -183,13 +206,7 @@ const styles = StyleSheet.create({
         color: '#2D5E40',
     },
     content: {
-        marginTop: 20,
         alignItems: 'center',
-    },
-    noInquiryText: {
-        fontSize: 16,
-        color: 'gray',
-        margin: 40,
     },
     writeButton: {
         backgroundColor: '#8CB972',
@@ -214,43 +231,21 @@ const styles = StyleSheet.create({
         marginBottom: 20,
         color: '#2D5E40',
     },
-    checkboxContainer: {
-        flexDirection: 'row',
-        marginBottom: 20,
-    },
-    checkbox: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginRight: 20,
-    },
-    checkedCheckbox: {
-        backgroundColor: '#8CB972',
-        borderColor: '#8CB972',
-        borderWidth: 10,
-        borderRadius: 10,
-    },
-    checkboxLabel: {
-        fontSize: 18,
-        margin: 5,
-        color: '#2D5E40',
-    },
-    textInput: {
+    titleInput: {
         borderWidth: 1,
         borderColor: '#2D5E40',
         borderRadius: 5,
         padding: 10,
-        top: -250,
-        minHeight: 100,
+        minHeight: 50,
         textAlignVertical: 'top',
         color: 'black',
-        height: 300,
     },
     submitButton: {
         backgroundColor: '#8CB972',
         paddingVertical: 10,
         borderRadius: 5,
         alignItems: 'center',
-        top: -230,
+        marginTop: 10,
     },
     submitButtonText: {
         fontSize: 18,
@@ -259,37 +254,22 @@ const styles = StyleSheet.create({
     closeButton: {
         right: -310,
     },
-    dateContainer: {
-        position: 'absolute',
-        bottom: 10,
-        left: 10,
+    inquiryItem: {
+        borderBottomWidth: 1,
+        borderColor: '#8CB972',
+        paddingBottom: 10,
+        marginBottom: 10,
     },
-    magazineContainer: {
-        flexDirection: 'row',
-    },
-    magazineItem: {
-        alignItems: 'center',
-    },
-    containerInquriy: {
-        margin: 10,
-        borderWidth: 1,
-        borderRadius: 10,
-        borderColor:  '#2D5E40',
-        backgroundColor: '#E5EFDF',
-        width: 300,
-        height: 80,
-        flexDirection: 'row',
-        alignItems: 'center',
-        margin: 10,
-    },
-    dateText: {
-        color: 'gray',
-        alignItems: 'center',
-    },
-    LabelText: {
-        fontSize: 20,
-        color: '#2D5E40',
+    title: {
+        fontSize: 16,
         fontWeight: 'bold',
+    },
+    date: {
+        fontSize: 14,
+        color: 'gray',
+    },
+    flatListContent: {
+        flexGrow: 1,
     },
 });
 

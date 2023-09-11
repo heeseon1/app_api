@@ -11,10 +11,11 @@ import Setting from '../Setting';
 const UseGuide = () => {
     const navigation = useNavigation();
     const route = useRoute();
+    const { token, pk, email } = route.params;
     const [popupIndex, setPopupIndex] = useState(0);
 
     const handleBack = () => {
-        navigation.navigate('Home');
+        navigation.navigate('Home', [token, pk, email]);
     };
 
     const handleNext = () => {

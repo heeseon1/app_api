@@ -1,4 +1,4 @@
-    import React, {useState} from 'react';
+    import React, {useState, useEffect } from 'react';
     import {
     View,
     Text,
@@ -10,59 +10,52 @@
     Modal,
     } from 'react-native';
     import Icon from 'react-native-vector-icons/MaterialIcons';
-    import {useNavigation} from '@react-navigation/native';
+    import {useNavigation, useRoute } from '@react-navigation/native';
     import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
+    import { useFocusEffect } from '@react-navigation/native';
     import DateTimePicker from '@react-native-community/datetimepicker';
 
     const Tab = createMaterialTopTabNavigator();
 
-    const Result = ({route}) => {
+    const Result = () => {
     const navigation = useNavigation();
+    const route = useRoute();
+    const { email } = route.params;
 
-    const resultData = [
-        {
-        id: '1',
-        title: '토마토 잎 곰팡이병',
-        image: require('../../assets/tomatoleafmold3.jpg'),
-        explanation: `잎의 일차 감염에서 꽃 (특히 종자를 생산하는 작물에서 위험) ...`,
-        datetime: '2023-06-10 15:30', // 날짜 정보 추가
-        bookmarked: false, // 북마크 여부 추가
-        },
-        {
-        id: '2',
-        title: '토마토 황화잎말이 바이러스',
-        image: require('../../assets/yellowleafcurlVirus3.jpg'),
-        explanation: `토마토 황화잎말이병은 토마토 Yellow Leaf Curl Virus (TYLCV)에 의하여 발생하는 바이러스병해다.`,
-        datetime: '2023-08-01 12:30',
-        bookmarked: false,
-        },
-        {
-        id: '3',
-        title: '토마토 황화잎말이 바이러스',
-        image: require('../../assets/yellowleafcurlVirus5.jpg'),
-        explanation: `토마토 황화잎말이병은 토마토 Yellow Leaf Curl Virus (TYLCV)에 의하여 발생하는 바이러스병해다.`,
-        datetime: '2023-08-10 19:30',
-        bookmarked: false,
-        },
-        {
-        id: '4',
-        title: '토마토 황화잎말이 바이러스',
-        image: require('../../assets/yellowleafcurlVirus4.jpg'),
-        explanation: `토마토 황화잎말이병은 토마토 Yellow Leaf Curl Virus (TYLCV)에 의하여 발생하는 바이러스병해다.`,
-        datetime: '2023-08-10 19:30',
-        bookmarked: false,
-        },
-        {
-        id: '5',
-        title: '토마토 잎 곰팡이병',
-        image: require('../../assets/tomatoleafmold4.jpg'),
-        explanation: `잎의 일차 감염에서 꽃 (특히 종자를 생산하는 작물에서 위험) ...`,
-        datetime: '2023-08-13 15:20', // 날짜 정보 추가
-        bookmarked: false, // 북마크 여부 추가
-        },
-    ];
+    const [userRecords, setUserRecords] = useState([]);
 
-    const [data, setData] = useState(resultData);
+    useFocusEffect(
+        React.useCallback(() => {
+        fetch('http://192.168.200.182:8000/home/history/')
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error('네트워크 오류');
+            }
+            return response.json();
+          })
+          .then((data) => {
+            if (data.code === 200) {
+                const filteredData = data.result.filter((item) => item.email === email);
+            setUserRecords(filteredData);
+          }else {
+            console.error('데이터 가져오기 실패:', data.message);
+          }
+        })
+          .catch((error) => console.error('요청 에러: ', error));
+      }, [email])
+    );
+
+      
+      const getImage = (imagepath) => {
+        try {
+          return `http://192.168.200.182:8000${imagepath}`;
+        } catch (error) {
+          console.log('이미지 URL을 가져오는 오류 발생:', error);
+        }
+      };
+    
+
+    const [data, setData] = useState(userRecords);
     const [bookmarkedItems, setBookmarkedItems] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [filteredData, setFilteredData] = useState([]);
@@ -88,10 +81,10 @@
 
     const handleResult = item => {
         navigation.navigate('Result_', {
-        title: item.title,
-        image: item.image,
-        explanation: item.explanation,
-        date: item.datetime,
+        title: item.name,
+        image: item.history_img,
+        explanation: item.causation,
+        date: item.created_at,
         bookmarked: item.bookmarked,
         updateBookmark: handleBookmark,
         });
@@ -162,16 +155,28 @@
         </TouchableOpacity>
     );
 
-    const renderItem = ({item}) => (
+    const renderItem = ({item}) => {
+        const date = new Date(item.created_at);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+    
+        const formattedDate = `Date: ${year}-${month}-${day} ${hours}:${minutes}`;
+        
+
+
+    return (
         <TouchableOpacity
         style={styles.magazineItem}
         onPress={() => handleResult(item)}>
         <View style={styles.imageContainer}>
-            <Image source={item.image} style={styles.image} />
-            <Text style={styles.smallTitle}>{item.title}</Text>
+            <Image source={{ uri: getImage(item.history_img) }} style={styles.image} />
+            <Text style={styles.smallTitle}>{item.name}</Text>
             <View style={styles.dateContainer}>
             <View style={styles.dateBackground}></View>
-            <Text style={styles.dateText}>Date: {item.datetime}</Text>
+            <Text style={styles.dateText}>{formattedDate}</Text>
             </View>
             <TouchableOpacity onPress={() => handleBookmark(item)}>
             <Icon
@@ -183,6 +188,7 @@
         </View>
         </TouchableOpacity>
     );
+    };
 
     return (
         <Tab.Navigator>
@@ -214,18 +220,11 @@
                 </View>
                 </View>
                 <FlatList
-                data={filteredData.length > 0 ? filteredData : data}
+                data={userRecords}
                 renderItem={renderItem}
-                keyExtractor={item => item.id}
+                keyExtractor={(item) => item.id.toString()}
                 />
-                {isCalendarVisible && (
-                <DateTimePicker
-                    value={selectedDate || new Date()}
-                    mode="date"
-                    display="default"
-                    onChange={handleDateSelect}
-                />
-                )}
+
             </View>
             )}
         />

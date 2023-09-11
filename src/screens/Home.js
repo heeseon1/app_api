@@ -27,6 +27,7 @@ function Home({route}) {
             <Tab.Screen
             name="GreenDan"
             component={Main}
+            initialParams={{ token: token, pk, email}}
             options={{
                 tabBarLabel: '메인화면',
                 tabBarIcon: ({color}) => (
@@ -37,6 +38,7 @@ function Home({route}) {
             <Tab.Screen
             name="Record"
             component={Result}
+            initialParams={{ token: token, pk, email}}
             options={{
                 tabBarLabel: '나의 기록',
                 tabBarIcon: ({color}) => (
@@ -47,7 +49,7 @@ function Home({route}) {
             <Tab.Screen
             name="Camera"
             component={Camera}
-            initialParams={{ token: token, email}}
+            initialParams={{ token: token, email, pk}}
             options={{
                 tabBarLabel: '카메라',
                 tabBarIcon: ({color}) => (
@@ -59,7 +61,7 @@ function Home({route}) {
             <Tab.Screen
             name="Setting"
             component={Setting}
-            initialParams={{ token: token, pk }}
+            initialParams={{ token: token, pk, email }}
             options={{
                 tabBarLabel: '설정',
                 tabBarIcon: ({color}) => (

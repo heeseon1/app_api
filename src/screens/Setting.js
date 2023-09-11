@@ -9,7 +9,7 @@ const CustomButton = ({ title, screenName, initialParams}) => {
 
 
     const handlePress = () => {
-        if (screenName === 'Mypage') {
+        if (screenName === 'Mypage' || screenName === 'UseGuide' || screenName === 'Inquiry') {
             navigation.navigate(screenName, initialParams);
         } else {
             navigation.navigate(screenName);
@@ -26,7 +26,8 @@ const CustomButton = ({ title, screenName, initialParams}) => {
 
 const OtherScreen = () => {
     const route = useRoute();
-    const { token, pk } = route.params;
+    const { token, pk, email } = route.params;
+
 
   
 
@@ -37,8 +38,8 @@ const OtherScreen = () => {
                 <CustomButton title="계정 확인" screenName="Mypage" initialParams={{ token: token, pk }}/>
                 <CustomButton title="환경설정" screenName="Configuration" />
                 <CustomButton title="공지사항" screenName="Notice" />
-                <CustomButton title="문의하기" screenName="Inquiry" />
-                <CustomButton title="이용방법" screenName="UseGuide" initialParams={{ token: token, pk }}/>
+                <CustomButton title="문의하기" screenName="Inquiry" initialParams={{ token: token, pk, email }}/>
+                <CustomButton title="이용방법" screenName="UseGuide" initialParams={{ token: token, pk, email }}/>
                 <CustomButton title="이용약관" screenName="TermsOfUse" />
                 <CustomButton title="개인정보활용방침" screenName="PrivacyPolicy" />
                 <CustomButton title="소프트웨어 라이선스" screenName="SoftwareLicense" />

@@ -9,6 +9,15 @@ const Result_ = ({ route }) => {
 
     const [isBookmarked, setIsBookmarked] = useState(bookmarked);
 
+    const result_date = new Date(date);
+    const year = result_date.getFullYear();
+    const month = String(result_date.getMonth() + 1).padStart(2, '0');
+    const day = String(result_date.getDate()).padStart(2, '0');
+    const hours = String(result_date.getHours()).padStart(2, '0');
+    const minutes = String(result_date.getMinutes()).padStart(2, '0');
+  
+    const formattedDate = `Date: ${year}-${month}-${day} ${hours}:${minutes}`;
+
     useEffect(() => {
         setIsBookmarked(bookmarked);
     }, [bookmarked]);
@@ -18,7 +27,14 @@ const Result_ = ({ route }) => {
         setIsBookmarked(updatedBookmark);
         updateBookmark({ id: route.params.id, bookmarked: updatedBookmark });
     };
-    
+
+    const getImage = (imagepath) => {
+        try {
+          return `http://192.168.200.182:8000${imagepath}`;
+        } catch (error) {
+          console.log('이미지 URL을 가져오는 오류 발생:', error);
+        }
+      };
 
     return (
         <ScrollView contentContainerStyle={styles.scrollViewContent}>
@@ -27,9 +43,9 @@ const Result_ = ({ route }) => {
                     <Icon name="arrow-back" size={30} color="#2D5E40" />
                 </TouchableOpacity>
                 <Text style={styles.title}>{title}</Text>
-                <Image source={image} style={styles.image} />
+                <Image source={{ uri: getImage(image) }} style={styles.image} />
                 <View style={styles.infoContainer}>
-                    <Text style={styles.date}>Date: {date}</Text>
+                    <Text style={styles.date}>{formattedDate}</Text>
                     <View style={styles.bookmarkContainer}>
                         <Text style={styles.bookmarkText}>Bookmarked: </Text>
                         <TouchableOpacity onPress={toggleBookmark}>
