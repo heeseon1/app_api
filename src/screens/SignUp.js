@@ -21,7 +21,7 @@ const SignUp = () => {
     };
 
     const handleSignUp = async () => {
-        const djServer = 'http://192.168.200.182:8000/accounts/dj-rest-auth/registration/';
+        const djServer = 'http://172.18.80.87:8000/accounts/dj-rest-auth/registration/';
 
         try{
             if (password1 !== password2) {
@@ -29,7 +29,7 @@ const SignUp = () => {
                 return;
         }
 
-        const csrfResponse = await axios.get('http://192.168.200.182:8000/accounts/get-csrf-token/');
+        const csrfResponse = await axios.get('http://172.18.80.87:8000/accounts/get-csrf-token/');
         const csrfToken = csrfResponse.data.csrf_token;
         // console.error(csrfToken);
 

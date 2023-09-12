@@ -12,12 +12,13 @@ const Inquiry = () => {
     const [inquiries, setInquiries] = useState([]);
     const [title, setQnaTitle] = useState('');
 
-    const email = route.params?.email;
+    const {email, pk} = route.params;
+    console.log('줬냐?',pk);
 
     const fetchInquiries = async () => {
         console.log('문의 내역 로드 시작');
         try {
-            const response = await fetch(`http://192.168.200.182:8000/info/qna/`);
+            const response = await fetch(`http://172.18.80.87:8000/info/qna/`);
             if (!response.ok) {
                 throw new Error('문의 내역 로드 실패');
             }
@@ -54,7 +55,7 @@ const Inquiry = () => {
             console.log('title:', title);
             console.log('content:', content);
 
-            const response = await fetch('http://192.168.200.182:8000/info/qna/', {
+            const response = await fetch('http://172.18.80.87:8000/info/qna/', {
                 method: 'POST',
                 body: JSON.stringify(requestData),
                 headers: {
@@ -133,6 +134,7 @@ const Inquiry = () => {
                                     label: item.title,
                                     datetime: item.created_at,
                                     explanation: item.content,
+                                    pk
                                 });
                             }}
                         >

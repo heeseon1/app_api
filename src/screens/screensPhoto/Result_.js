@@ -30,7 +30,7 @@ const Result_ = ({ route }) => {
 
     const getImage = (imagepath) => {
         try {
-          return `http://192.168.200.182:8000${imagepath}`;
+          return `http://172.18.80.87:8000${imagepath}`;
         } catch (error) {
           console.log('이미지 URL을 가져오는 오류 발생:', error);
         }

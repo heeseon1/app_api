@@ -1,12 +1,18 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation } from '@react-navigation/native';
 
 
 const InquiryStyle = ({ route }) => {
     const navigation = useNavigation();
-    const { label, datetime, explanation } = route.params;
+    const { label, datetime, explanation, pk } = route.params;
+    console.log('받았냐?',pk)
+
+    const handleEditPress = () => {
+        navigation.navigate('EditInquiry', {label, datetime, explanation, pk});
+        console.log('또줌?',pk);
+    };
 
     return (
         <View style={styles.container}>
@@ -18,6 +24,10 @@ const InquiryStyle = ({ route }) => {
                 <Text style={styles.title}>{label}</Text>
                 <Text style={styles.dateText}>Date: {datetime}</Text>
                 <Text style={styles.explanationText}>{explanation}</Text>
+
+                <TouchableOpacity style={styles.editButton} onPress={handleEditPress}>
+                    <Text style={styles.editButtonText}>수정</Text>
+                </TouchableOpacity>
             </View>
         </View>
     );
@@ -62,6 +72,18 @@ const styles = StyleSheet.create({
         borderRadius:10,
         padding: 20,
         margin: 10,
+    },
+    editButton: {
+        backgroundColor: '#8CB972',
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        borderRadius: 5,
+        marginTop: 10,
+    },
+    editButtonText: {
+        fontSize: 18,
+        color: 'white',
+        textAlign: 'center',
     },
 });
 

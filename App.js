@@ -32,6 +32,7 @@ import Configuration from './src/screens/screensSetting/Configuration';
 import Notice from './src/screens/screensSetting/Notice';
 import Inquiry from './src/screens/screensSetting/Inquiry';
 import Inquiry_style from './src/screens/screensSetting/Inquiry_style';
+import EditInquiry from './src/screens/screensSetting/EditInquiry';
 
 import UseGuide from './src/screens/screensSetting/UseGuide';
 import TermsOfUse from './src/screens/screensSetting/TermsOfUse';
@@ -156,6 +157,12 @@ const App = () => {
             <Stack.Screen
             name="Inquiry_style"
             component={Inquiry_style}
+            options={{headerShown: false}}
+            />
+
+            <Stack.Screen
+            name="EditInquiry"
+            component={EditInquiry}
             options={{headerShown: false}}
             />
 
