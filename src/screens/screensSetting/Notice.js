@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -6,43 +6,55 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 const Notice = () => {
     const navigation = useNavigation();
     const [expandedItem, setExpandedItem] = useState(null);
+    const [noticeData, setNoticeData] = useState([]);
 
-    const data = [
-        {
-            id: 1,
-            title: '공지사항 제목 1',
-            content: '공지사항 내용 1',
-            isNew: true,
-            datetime: '2023-08-10 09:00',
-            explanation: '안녕하세요. 유저 여러분 {"\n"} 이번 앱 런칭...',
-        },
-        {
-            id: 2,
-            title: '공지사항 제목 2',
-            content: '공지사항 내용 2',
-            isNew: false,
-            datetime: '2023-08-02 09:00',
-            explanation: '안녕하세요. 유저 여러분 {"\n"} 8월 12일에 점검이 있음을 {"\n"} 알려드립니다',
-        },
-        // Add more data items as needed
-    ];
+    useEffect(() => {
+        fetch('http://172.18.80.87:8000/info/report')
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error('네트워크 오류');
+            }
+            return response.json();
+          })
+          .then((data) => {
+            if (data.result) {
+              setNoticeData(data.result);
+            } else {
+              console.error('데이터 가져오기 실패');
+            }
+          })
+          .catch((error) => console.error('요청 에러: ', error));
+      }, []);
+
 
     const handleExpand = (item) => {
         setExpandedItem(item.id === expandedItem ? null : item.id);
     };
 
-    const renderItem = ({ item }) => (
+    const renderItem = ({ item }) => {
+
+        const date = new Date(item.created_at);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+      
+        const formattedDate = `Date: ${year}-${month}-${day} ${hours}:${minutes}`;
+    
+    return (
         <TouchableOpacity style={styles.noticeItem} onPress={() => handleExpand(item)}>
             <View style={[styles.newBadge, { backgroundColor: item.isNew ? 'gray' : 'red' }]} />
             <View style={styles.noticeHeader}>
                 <Text style={styles.noticeTitle}>{item.title}</Text>
-                <Text style={styles.noticeDate}>{item.datetime}</Text>
+                <Text style={styles.noticeDate}>{formattedDate}</Text>
             </View>
             {expandedItem === item.id && (
-                <Text style={styles.noticeExplanation}>{item.explanation}</Text>
+                <Text style={styles.noticeExplanation}>{item.content}</Text>
             )}
         </TouchableOpacity>
-    );
+    )
+    };
 
     return (
         <View style={styles.container}>
@@ -51,7 +63,7 @@ const Notice = () => {
             </TouchableOpacity>
             <View style={styles.container2}>
             <FlatList
-                data={data}
+                data={noticeData}
                 renderItem={renderItem}
                 keyExtractor={item => item.id.toString()}
             />
