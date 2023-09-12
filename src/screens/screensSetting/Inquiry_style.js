@@ -7,11 +7,11 @@ import { useNavigation } from '@react-navigation/native';
 const InquiryStyle = ({ route }) => {
     const navigation = useNavigation();
     const { label, datetime, explanation, pk } = route.params;
-    console.log('받았냐?',pk)
+
 
     const handleEditPress = () => {
         navigation.navigate('EditInquiry', {label, datetime, explanation, pk});
-        console.log('또줌?',pk);
+
     };
 
     return (

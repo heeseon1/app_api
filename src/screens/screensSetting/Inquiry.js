@@ -13,7 +13,7 @@ const Inquiry = () => {
     const [title, setQnaTitle] = useState('');
 
     const {email, pk} = route.params;
-    console.log('줬냐?',pk);
+
 
     const fetchInquiries = async () => {
         console.log('문의 내역 로드 시작');

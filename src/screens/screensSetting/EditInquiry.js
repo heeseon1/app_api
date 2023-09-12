@@ -6,8 +6,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const EditInquiry = ({ route }) => {
     const navigation = useNavigation();
     const { label, datetime, explanation, pk } = route.params;
-    
-    console.log(pk);
 
     const [editedLabel, setEditedLabel] = useState(label);
     const [editedExplanation, setEditedExplanation] = useState(explanation);
