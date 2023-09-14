@@ -1,11 +1,12 @@
-import React, { useState,  useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const Result_ = ({ route }) => {
     const navigation = useNavigation();
-    const { title, image, explanation, date, bookmarked, updateBookmark } = route.params;
+    const { title, image, explanation, date, bookmarked, updateBookmark, id, token } = route.params;
+    console.log('파라미터',route.params);
 
     const [isBookmarked, setIsBookmarked] = useState(bookmarked);
 
@@ -22,19 +23,46 @@ const Result_ = ({ route }) => {
         setIsBookmarked(bookmarked);
     }, [bookmarked]);
 
-    const toggleBookmark = () => {
-        const updatedBookmark = !isBookmarked;
-        setIsBookmarked(updatedBookmark);
-        updateBookmark({ id: route.params.id, bookmarked: updatedBookmark });
+    const toggleBookmark = async () => {
+        try {
+            const response = await fetch(
+                `http://192.168.200.182:8000/home/history/${id}/`,
+                {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({ bookmarked: !isBookmarked }),
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error('서버 응답 오류');
+            }
+
+            console.log(isBookmarked)
+
+            // 서버에 북마크 상태 업데이트 요청 후, 클라이언트의 상태도 업데이트합니다.
+            const updatedBookmark = !isBookmarked;
+            setIsBookmarked(updatedBookmark);
+            console.log('업데이ㅡ',updatedBookmark)
+
+            route.params.updateBookmark({ id: id, bookmarked: !updatedBookmark });
+            console.log('아이디',id,updatedBookmark)
+
+        } catch (error) {
+            console.error('오류 발생:', error);
+        }
     };
 
     const getImage = (imagepath) => {
         try {
-          return `http://172.18.80.87:8000${imagepath}`;
+            return `http://192.168.200.182:8000${imagepath}`;
         } catch (error) {
-          console.log('이미지 URL을 가져오는 오류 발생:', error);
+            console.log('이미지 URL을 가져오는 오류 발생:', error);
         }
-      };
+    };
 
     return (
         <ScrollView contentContainerStyle={styles.scrollViewContent}>
@@ -106,13 +134,9 @@ const styles = StyleSheet.create({
     bookmarkContainer: {
         flexDirection: 'row',
     },
-    bookmarkText: { // 북마크 텍스트 스타일 추가
+    bookmarkText: {
         fontSize: 16,
     },
 });
 
 export default Result_;
-
-
-
-

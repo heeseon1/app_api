@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import {useNavigation} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -12,7 +12,7 @@ const SignUp = () => {
     const [password2, setPassword2] = useState('');
 
     const navigation = useNavigation();
-    const csrfToken = '';
+    let csrfToken = ''; // 이 부분에서 let 키워드 사용
 
     // 이메일 형식 검사 함수
     const isEmailValid = (email) => {
@@ -21,41 +21,19 @@ const SignUp = () => {
     };
 
     const handleSignUp = async () => {
-        const djServer = 'http://172.18.80.87:8000/accounts/dj-rest-auth/registration/';
+        const djServer = 'http://192.168.200.182:8000/accounts/dj-rest-auth/registration/';
 
-        try{
-            if (password1 !== password2) {
-                Alert.alert('비밀번호가 일치하지 않습니다.');
-                return;
-        }
-
-        const csrfResponse = await axios.get('http://172.18.80.87:8000/accounts/get-csrf-token/');
-        const csrfToken = csrfResponse.data.csrf_token;
-        // console.error(csrfToken);
-
-        const response = await axios.post(djServer, {
-            username: username,
-            email: email,
-            password1: password1,
-            password2: password2,
-    }, 
-    
-    {
-        headers: {
-            "Content-type": "application/json",
-            "X-CSRFToken": csrfToken,
-        },
-        
-    }
-    );
-        
-        if (username.length < 1 || email.length < 1 || password1.length < 1 || password2.length < 1) {
+        if (username.length < 3 || email.length < 1 || password1.length < 1 || password2.length < 1) {
             Alert.alert('경고', '입력되지 않은 칸이 있습니다! 모두 입력해 주세요!', [{ text: '확인' }]);
         } else if (!isEmailValid(email)) {
             Alert.alert('경고', '이메일 형식이 아닙니다.', [{ text: '확인' }]);
         } else if (password1 !== password2) {
             Alert.alert('경고', '비밀번호가 일치하지 않습니다.', [{ text: '확인' }]);
-        } else {
+        } else if (password1.length < 8) {
+            Alert.alert('경고', '비밀번호는 8자리 이상으로 설정해 주세요!', [{ text: '확인' }]);
+        } else if (username.length < 3) {
+            Alert.alert('경고', '비밀번호는 8자리 이상으로 설정해 주세요!', [{ text: '확인' }]);
+        }else {
             // 가입 처리 로직 실행 및 팝업 표시
             Alert.alert('가입 완료', '정상적으로 가입이 완료되었습니다.', [
                 {
@@ -65,27 +43,53 @@ const SignUp = () => {
                     },
                 },
             ]);
-        }
 
-        // console.error(response);
-        if (response.status === 201) {
-            const data = response.data;
-            if (data.access) {
-                await AsyncStorage.setItem('authToken', data.access);
-            } else {
-                console.error('토큰 없음');
-            }
-        } else {
-            const errorData = response.data;
-            if (errorData) {
-                const errorMessage = errorData.non_field_errors ? errorData.non_field_errors[0] : '회원가입 실패';
-                Alert.alert('오류 : ' + errorMessage);
+            try {
+                if (password1 !== password2) {
+                    Alert.alert('비밀번호가 일치하지 않습니다.');
+                    return;
+                }
+
+                const csrfResponse = await axios.get('http://192.168.200.182:8000/accounts/get-csrf-token/');
+                csrfToken = csrfResponse.data.csrf_token;
+
+                const response = await axios.post(
+                    djServer,
+                    {
+                        username: username,
+                        email: email,
+                        password1: password1,
+                        password2: password2,
+                    },
+                    {
+                        headers: {
+                            'Content-type': 'application/json',
+                            'X-CSRFToken': csrfToken,
+                        },
+                    }
+                );
+
+                if (response.status === 201) {
+                    const data = response.data;
+                    if (data.access) {
+                        await AsyncStorage.setItem('authToken', data.access);
+                    } else {
+                        console.error('토큰 없음');
+                    }
+                } else {
+                    const errorData = response.data;
+                    if (errorData) {
+                        const errorMessage = errorData.non_field_errors
+                            ? errorData.non_field_errors[0]
+                            : '회원가입 실패';
+                        Alert.alert('오류 : ' + errorMessage);
+                    }
+                }
+            } catch (error) {
+                console.error(error);
+                Alert.alert('경고', '네트워크 상태를 확인해 주세요', [{ text: '확인' }]);
             }
         }
-        
-    } catch (error) {
-        console.error('API 요청 에러 : ', error);
-    }
     };
 
     return (
@@ -129,7 +133,6 @@ const SignUp = () => {
         </View>
     );
 };
-
 
 const styles = StyleSheet.create({
     container: {

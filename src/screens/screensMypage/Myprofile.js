@@ -23,7 +23,7 @@ const MyProfile = () => {
 
     useEffect(() => {
         if (profileImage) {
-            const imageUrl = `http://172.18.80.87:8000${profileImage}`;
+            const imageUrl = `http://192.168.200.182:8000${profileImage}`;
             console.log('이미지유알엘:',imageUrl)
 
             fetch(imageUrl)
@@ -93,7 +93,7 @@ const MyProfile = () => {
                 });
     
                 try {
-                    const djServer = await fetch(`http://172.18.80.87:8000/accounts/change/profile/${pk}/`, {
+                    const djServer = await fetch(`http://192.168.200.182:8000/accounts/change/profile/${pk}/`, {
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'multipart/form-data',
@@ -145,7 +145,7 @@ const MyProfile = () => {
     const handleSaveProfile = async () => {
         if (editusername) {
             try {
-                const djServer = await fetch('http://172.18.80.87:8000/accounts/change/username/', {
+                const djServer = await fetch('http://192.168.200.182:8000/accounts/change/username/', {
                     method: 'PUT',
                     headers: {
                         Authorization: `Bearer ${token}`,

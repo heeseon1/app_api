@@ -22,7 +22,7 @@ const Pw_reset = ({ navigation, route }) => {
                 return;
               }
 
-              const djServer = await fetch('http://172.18.80.87:8000/accounts/dj-rest-auth/password/change/', {
+              const djServer = await fetch('http://192.168.200.182:8000/accounts/dj-rest-auth/password/change/', {
                 method: 'POST',
                 headers: {
                 Authorization: `Bearer ${token}`,

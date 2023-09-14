@@ -12,7 +12,7 @@ const EditInquiry = ({ route }) => {
 
     const handleSavePress = async () => {
         try {
-            const djServer = `http://172.18.80.87:8000/info/qna/edit/${pk}/`;
+            const djServer = `http://192.168.200.182:8000/info/qna/edit/${pk}/`;
 
             const requestData = {
                 newTitle: label,

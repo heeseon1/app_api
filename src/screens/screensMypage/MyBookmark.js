@@ -1,21 +1,59 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet, FlatList, TouchableOpacity, ScrollView } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { useState, useEffect } from 'react';
 
-const MyBookmark = ({ data = [],  handleBookmark }) => {
+const MyBookmark = ({ handleBookmarkAndUpdateData }) => {
     const navigation = useNavigation();
+    const [data, setData] = useState([]);
+    const route = useRoute();
+    const { email } = route.params;
 
-    const handleResult = (item) => {
+    console.log('데이터:', email);
+    const fetchData = async () => {
+        try {
+          const response = await fetch('http://192.168.200.182:8000/home/history/');
+          if (!response.ok) {
+            throw new Error('네트워크 오류');
+          }
+          const data = await response.json();
+          if (data.code === 200) {
+            // email 조건과 북마크 필드가 True인 경우 필터링
+            const filteredData = data.result.filter((item) => item.email === email&& item.bookmarked);
+            setData(filteredData);
+          } else {
+            console.error('데이터 가져오기 실패:', data.message);
+          }
+        } catch (error) {
+          console.error('요청 에러: ', error);
+        }
+      };
+    
+      useEffect(() => {
+        fetchData();
+      }, [email]);
+
+      console.log('데이터:', data);
+    
+      const getImage = (imagepath) => {
+        try {
+          return `http://192.168.200.182:8000${imagepath}`;
+        } catch (error) {
+          console.log('이미지 URL을 가져오는 오류 발생:', error);
+        }
+      };
+
+      const handleResult = (item) => {
         navigation.navigate('Result_', {
-            title: item.title,
-            image: item.image,
-            explanation: item.explanation,
-            date: item.datetime,
-            bookmarked: item.bookmarked,
-            updateBookmark: handleBookmark, // 북마크 업데이트 함수 전달
+          title: item.name,
+          image: item.history_img,
+          explanation: item.causation,
+          date: item.created_at,
+          bookmarked: item.bookmarked,
+          updateBookmark: handleBookmarkAndUpdateData,
         });
-    };
+      };
     
 
     const renderItem = ({ item }) => (
@@ -24,9 +62,9 @@ const MyBookmark = ({ data = [],  handleBookmark }) => {
             onPress={() => handleResult(item)}
         >
             <View style={styles.imageContainer}>
-                <Image source={item.image} style={styles.image} />
+                <Image source={{uri: getImage(item.history_img)}} style={styles.image} />
                 <View style={styles.infoContainer}>
-                    <Text style={styles.datetime}>Date: {item.datetime}</Text>
+                    <Text style={styles.datetime}>Date: {item.name}</Text>
                     <TouchableOpacity style={styles.bookmarkContainer}>
                         <Icon
                             name={item.bookmarked ? 'bookmark' : 'bookmark-border'}

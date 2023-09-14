@@ -9,7 +9,7 @@ const Notice = () => {
     const [noticeData, setNoticeData] = useState([]);
 
     useEffect(() => {
-        fetch('http://172.18.80.87:8000/info/report')
+        fetch('http://192.168.200.182:8000/info/report')
           .then((response) => {
             if (!response.ok) {
               throw new Error('네트워크 오류');

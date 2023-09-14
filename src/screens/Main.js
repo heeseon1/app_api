@@ -17,7 +17,7 @@ const Main = ({ navigation }) => {
   const route = useRoute();
 
   useEffect(() => {
-    fetch('http://172.18.80.87:8000/home/blight/')
+    fetch('http://192.168.200.182:8000/home/blight/')
       .then((response) => {
         if (!response.ok) {
           throw new Error('네트워크 오류');
@@ -31,7 +31,7 @@ const Main = ({ navigation }) => {
   useFocusEffect(
     React.useCallback(() => {
       const { email } = route.params;
-      fetch('http://172.18.80.87:8000/home/history/')
+      fetch('http://192.168.200.182:8000/home/history/')
         .then((response) => {
           if (!response.ok) {
             throw new Error('네트워크 오류');
@@ -52,7 +52,7 @@ const Main = ({ navigation }) => {
 
   const getImage = (imagepath) => {
     try {
-      return `http://172.18.80.87:8000${imagepath}`;
+      return `http://192.168.200.182:8000${imagepath}`;
     } catch (error) {
       console.log('이미지 URL을 가져오는 오류 발생:', error);
     }

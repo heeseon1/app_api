@@ -10,7 +10,7 @@ const Magazine = ({ route }) => {
     const [blight, setBlights] = useState([]);
 
     useEffect(() => {
-        fetch(`http://172.18.80.87:8000/home/blight/${blightId}/`)
+        fetch(`http://192.168.200.182:8000/home/blight/${blightId}/`)
             .then((response) => {
                 if (!response.ok) {
                     throw new Error('네트워크 오류');
@@ -27,7 +27,7 @@ const Magazine = ({ route }) => {
 
     const getImage = (imagePath) => {
         try {
-            return `http://172.18.80.87:8000${imagePath}`;
+            return `http://192.168.200.182:8000${imagePath}`;
         } catch (error) {
             console.error('이미지 URL을 가져오는 중 오류 발생:', error);
         }
