@@ -70,7 +70,7 @@ const LoginScreen = () => {
                     Alert.alert('로그인 실패', '아이디와 비밀번호를 모두 입력해주세요.', [{ text: '확인' }]);
                 } else if (!isEmailValid(email)) {
                     Alert.alert('로그인 실패', '올바른 이메일 형식이 아닙니다. 다시 확인해주세요.', [{ text: '확인' }]);
-                }  else  {
+                }  else  {r
                     // 비밀번호가 맞지 않을 때 팝업 표시
                     Alert.alert('로그인 실패', '비밀번호가 맞지 않습니다. 다시 확인해주세요.', [{ text: '확인' }]);
             }

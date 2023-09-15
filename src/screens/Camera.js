@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import RNFS from 'react-native-fs';
 import Result from './Result';
 
 const Camera = ({ navigation }) => {
@@ -24,12 +25,93 @@ const Camera = ({ navigation }) => {
   console.log('이메일',email);
 
   const openCamera = () => {
-    launchCamera({ mediaType: 'photo' }, (response) => {
+    const options = {
+      mediaType: 'photo',
+      saveToPhotos: true,
+    };
+  
+    launchCamera(options, async (response) => {
       if (!response.didCancel) {
-        setSelectedImage(response.uri);
-        setShowPopup(true);
+        if (response.assets && response.assets.length > 0) {
+          const imagePath = response.assets[0].uri; // 이미지 경로 가져오기
+          console.log('이미지 경로 : ', imagePath);
+  
+          // imagePath 저장
+          try {
+            const savedImagePath = await saveImageToFileSystem(imagePath);
+  
+            if (response.assets && response.assets.length > 0) {
+              const asset = response.assets[0];
+              console.log('우아', asset);
+              if (asset.uri) {
+                await saveImageToGallery(savedImagePath);
+                await uploadImageToServer(savedImagePath, response.assets[0].type, response.assets[0].fileName);
+                
+                // 여기서 팝업을 표시합니다.
+                setShowPopup(true); // 이 부분을 추가합니다.
+              }
+            }
+          } catch (error) {
+            console.error('사진 저장 오류 : ', error);
+          }
+        }
       }
     });
+  };
+
+  // 내 파일에 이미지 저장
+  const saveImageToFileSystem = async (imagePath) => {
+    try {
+      const savedImagePath = `${RNFS.DocumentDirectoryPath}/saved_image.jpg`;
+      await RNFS.copyFile(imagePath, savedImagePath);
+      console.log('이미지를 내 파일에 저장', savedImagePath);
+      return savedImagePath;
+    } catch (error) {
+      throw new Error('이미지를 내 파일에 저장 실패!');
+    }
+  };
+
+  // 갤러리에 이미지 저장
+  const saveImageToGallery = async (imagePath) => {
+    try {
+      await RNFS.copyFile(imagePath, RNFS.ExternalStorageDirectoryPath + '/DCIM/saved_image.jpg');
+      console.log('이미지를 갤러리에 저장');
+    } catch (error) {
+      throw new Error('이미지를 갤러리에 저장 실패!');
+    }
+  };
+
+  // 서버로 이미지 업로드
+  const uploadImageToServer = async (savedImagePath, type, fileName) => {
+      try {
+      const formData = new FormData();
+      formData.append('user_image', {
+        uri: `file://${savedImagePath}`,
+        type,
+        name: fileName,
+      });
+      formData.append('email', email);
+      console.log('폼데이터',savedImagePath, type, fileName);
+
+      const djServer = await fetch('http://192.168.1.101:8000/photo/test/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      if (djServer.status === 200) {
+        const data = await djServer.json();
+        setResult(data);
+        console.log('데이터 확인: ', data);
+      } else {
+        console.error('사진 업로드 실패');
+      }
+    } catch (error) {
+      console.error('사진 업로드 중 오류: ', error);
+    }
   };
 
   const openGallery = async () => {
@@ -46,7 +128,7 @@ const Camera = ({ navigation }) => {
         name: response.assets[0].fileName,
       });
       formData.append('email', email);
-      console.log('폼데이터:',formData);
+      console.log('폼데이터2:',response);
 
       try {
         const djServer = await fetch('http://192.168.1.101:8000/photo/test/', {
