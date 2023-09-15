@@ -32,7 +32,7 @@ const bookmarkedRecords = userRecords.filter(item => item.bookmarked);
 
 const fetchData = async () => {
   try {
-    const response = await fetch('http://192.168.200.182:8000/home/history/');
+    const response = await fetch('http://192.168.1.101:8000/home/history/');
     if (!response.ok) {
       throw new Error('네트워크 오류');
     }
@@ -63,7 +63,7 @@ useEffect(() => {
   
   const getImage = (imagepath) => {
     try {
-      return `http://192.168.200.182:8000${imagepath}`;
+      return `http://192.168.1.101:8000${imagepath}`;
     } catch (error) {
       console.log('이미지 URL을 가져오는 오류 발생:', error);
     }
@@ -77,7 +77,7 @@ useEffect(() => {
 const handleBookmarkAndUpdateData = async (item) => {
   try {
     const response = await fetch(
-      `http://192.168.200.182:8000/home/history/${item.id}/`,
+      `http://192.168.1.101:8000/home/history/${item.id}/`,
       {
         method: 'PATCH',
         headers: {

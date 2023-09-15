@@ -1,14 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useState,  useEffect } from 'react';
+import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, FlatList } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
-const Result_ = ({ route }) => {
-    const navigation = useNavigation();
-    const { title, image, explanation, date, bookmarked, updateBookmark, id, token } = route.params;
-    console.log('파라미터',route.params);
 
-    const [isBookmarked, setIsBookmarked] = useState(bookmarked);
+const Result_ = ({route}) => {
+    const navigation = useNavigation();
+    const { title, image, explanation, date, bookmarked, updateBookmark, token } = route.params;
 
     const result_date = new Date(date);
     const year = result_date.getFullYear();
@@ -19,50 +17,53 @@ const Result_ = ({ route }) => {
   
     const formattedDate = `Date: ${year}-${month}-${day} ${hours}:${minutes}`;
 
-    useEffect(() => {
-        setIsBookmarked(bookmarked);
-    }, [bookmarked]);
-
-    const toggleBookmark = async () => {
-        try {
-            const response = await fetch(
-                `http://192.168.200.182:8000/home/history/${id}/`,
-                {
-                    method: 'PATCH',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Authorization: `Bearer ${token}`,
-                    },
-                    body: JSON.stringify({ bookmarked: !isBookmarked }),
-                }
-            );
-
-            if (!response.ok) {
-                throw new Error('서버 응답 오류');
-            }
-
-            console.log(isBookmarked)
-
-            // 서버에 북마크 상태 업데이트 요청 후, 클라이언트의 상태도 업데이트합니다.
-            const updatedBookmark = !isBookmarked;
-            setIsBookmarked(updatedBookmark);
-            console.log('업데이ㅡ',updatedBookmark)
-
-            route.params.updateBookmark({ id: id, bookmarked: !updatedBookmark });
-            console.log('아이디',id,updatedBookmark)
-
-        } catch (error) {
-            console.error('오류 발생:', error);
-        }
-    };
+    
 
     const getImage = (imagepath) => {
         try {
-            return `http://192.168.200.182:8000${imagepath}`;
+            return `http://192.168.1.101:8000${imagepath}`;
         } catch (error) {
             console.log('이미지 URL을 가져오는 오류 발생:', error);
         }
     };
+
+    const renderItem = ({ item }) => (
+        <TouchableOpacity
+            style={styles.magazineItem}
+            onPress={() => handleResult(item)}
+        >
+            <View style={styles.imageContainer}>
+                <Image source={{ uri: getImage(image) }} style={styles.image} />
+                <View style={styles.infoContainer}>
+                    <Text style={styles.datetime}>Date: {item.datetime}</Text>
+                    <TouchableOpacity style={styles.bookmarkContainer}>
+                        <Icon
+                            name={item.bookmarked ? 'bookmark' : 'bookmark-border'}
+                            size={24}
+                            color={item.bookmarked ? 'blue' : 'gray'}
+                        />
+                    </TouchableOpacity>
+                </View>
+                <Text style={styles.smallTitle}>{item.title}</Text>
+            </View>
+        </TouchableOpacity>
+    );
+
+
+    const [isBookmarked, setIsBookmarked] = useState(bookmarked);
+
+    useEffect(() => {
+        setIsBookmarked(bookmarked);
+    }, [bookmarked]);
+
+    const toggleBookmark = () => {
+        const updatedBookmark = !isBookmarked;
+        setIsBookmarked(updatedBookmark);
+        if (updateBookmark) {
+          // updateBookmark 함수가 정의되어 있는 경우에만 호출합니다.
+          updateBookmark({ id: route.params.id, bookmarked: updatedBookmark });
+        }
+      };
 
     return (
         <ScrollView contentContainerStyle={styles.scrollViewContent}>
@@ -73,7 +74,7 @@ const Result_ = ({ route }) => {
                 <Text style={styles.title}>{title}</Text>
                 <Image source={{ uri: getImage(image) }} style={styles.image} />
                 <View style={styles.infoContainer}>
-                    <Text style={styles.date}>{formattedDate}</Text>
+                    <Text style={styles.date}>Date: {formattedDate}</Text>
                     <View style={styles.bookmarkContainer}>
                         <Text style={styles.bookmarkText}>Bookmarked: </Text>
                         <TouchableOpacity onPress={toggleBookmark}>
@@ -134,7 +135,7 @@ const styles = StyleSheet.create({
     bookmarkContainer: {
         flexDirection: 'row',
     },
-    bookmarkText: {
+    bookmarkText: { // 북마크 텍스트 스타일 추가
         fontSize: 16,
     },
 });

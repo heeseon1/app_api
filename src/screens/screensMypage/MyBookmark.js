@@ -13,7 +13,7 @@ const MyBookmark = ({ handleBookmarkAndUpdateData }) => {
     console.log('데이터:', email);
     const fetchData = async () => {
         try {
-          const response = await fetch('http://192.168.200.182:8000/home/history/');
+          const response = await fetch('http://192.168.1.101:8000/home/history/');
           if (!response.ok) {
             throw new Error('네트워크 오류');
           }

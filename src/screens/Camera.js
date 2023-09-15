@@ -49,7 +49,7 @@ const Camera = ({ navigation }) => {
       console.log('폼데이터:',formData);
 
       try {
-        const djServer = await fetch('http://192.168.200.182:8000/photo/test/', {
+        const djServer = await fetch('http://192.168.1.101:8000/photo/test/', {
           method: 'POST',
           headers: {
             'Content-Type': 'multipart/form-data',

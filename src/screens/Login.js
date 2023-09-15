@@ -56,7 +56,7 @@ const LoginScreen = () => {
                 'Authorization': `Bearer ${token}`,
             });
 
-            const djServer = await fetch('http://192.168.200.182:8000/accounts/dj-rest-auth/login/', {
+            const djServer = await fetch('http://192.168.1.101:8000/accounts/dj-rest-auth/login/', {
                 method: 'POST',
                 headers,
                 body: JSON.stringify({
@@ -70,8 +70,11 @@ const LoginScreen = () => {
                     Alert.alert('로그인 실패', '아이디와 비밀번호를 모두 입력해주세요.', [{ text: '확인' }]);
                 } else if (!isEmailValid(email)) {
                     Alert.alert('로그인 실패', '올바른 이메일 형식이 아닙니다. 다시 확인해주세요.', [{ text: '확인' }]);
-                }
-            } else {
+                }  else  {
+                    // 비밀번호가 맞지 않을 때 팝업 표시
+                    Alert.alert('로그인 실패', '비밀번호가 맞지 않습니다. 다시 확인해주세요.', [{ text: '확인' }]);
+            }
+        } else {
                 // Simulate a successful login
 
                 if (djServer.status === 200) {
@@ -93,6 +96,7 @@ const LoginScreen = () => {
 
                 } else {
                     const responseData = await djServer.json();
+                    Alert.alert('로그인 실패', '서버와 연동되지 않았습니다. 네트워크 상태를 확인해주세요.', [{ text: '확인' }]);
                     console.error('API 요청 실패 : ', responseData);
                 }};
         } catch (error){

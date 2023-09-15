@@ -15,9 +15,11 @@ const Main = ({ navigation }) => {
   const [blights, setBlights] = useState([]);
   const [resultData, setResultData] = useState([]);
   const route = useRoute();
+  const {token} = route.params;
+
 
   useEffect(() => {
-    fetch('http://192.168.200.182:8000/home/blight/')
+    fetch('http://192.168.1.101:8000/home/blight/')
       .then((response) => {
         if (!response.ok) {
           throw new Error('네트워크 오류');
@@ -31,7 +33,7 @@ const Main = ({ navigation }) => {
   useFocusEffect(
     React.useCallback(() => {
       const { email } = route.params;
-      fetch('http://192.168.200.182:8000/home/history/')
+      fetch('http://192.168.1.101:8000/home/history/')
         .then((response) => {
           if (!response.ok) {
             throw new Error('네트워크 오류');
@@ -52,7 +54,7 @@ const Main = ({ navigation }) => {
 
   const getImage = (imagepath) => {
     try {
-      return `http://192.168.200.182:8000${imagepath}`;
+      return `http://192.168.1.101:8000${imagepath}`;
     } catch (error) {
       console.log('이미지 URL을 가져오는 오류 발생:', error);
     }
@@ -105,6 +107,42 @@ const Main = ({ navigation }) => {
     );
   };
 
+  const handleBookmarkAndUpdateData = async (item) => {
+    try {
+      const response = await fetch(
+        `http://192.168.1.101:8000/home/history/${item.id}/`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ bookmarked: !item.bookmarked }),
+        }
+      );
+  
+      if (!response.ok) {
+        throw new Error('서버 응답 오류');
+      }
+      
+      const updatedData = data.map((dataItem) => {
+        if (dataItem.id === item.id) {
+          const updateItem = { ...dataItem, bookmarked: !dataItem.bookmarked };
+          return updateItem;
+        }
+        return dataItem;
+      });
+  
+      setData(updatedData);
+  
+    
+    fetchData();
+  
+    } catch (error) {
+      console.error('오류 발생:', error);
+    }
+  };
+
   const handleRecord = (item) => {
     navigation.navigate('Result_', {
       title: item.name,
@@ -112,6 +150,9 @@ const Main = ({ navigation }) => {
       explanation: item.causation,
       date: item.created_at,
       bookmarked: item.bookmarked,
+      updateBookmark: handleBookmarkAndUpdateData,
+      token: token,
+
     });
   };
 

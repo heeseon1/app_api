@@ -18,7 +18,7 @@ const Inquiry = () => {
     const fetchInquiries = async () => {
         console.log('문의 내역 로드 시작');
         try {
-            const response = await fetch(`http://192.168.200.182:8000/info/qna/`);
+            const response = await fetch(`http://192.168.1.101:8000/info/qna/`);
             if (!response.ok) {
                 throw new Error('문의 내역 로드 실패');
             }
@@ -55,7 +55,7 @@ const Inquiry = () => {
             console.log('title:', title);
             console.log('content:', content);
 
-            const response = await fetch('http://192.168.200.182:8000/info/qna/', {
+            const response = await fetch('http://192.168.1.101:8000/info/qna/', {
                 method: 'POST',
                 body: JSON.stringify(requestData),
                 headers: {
