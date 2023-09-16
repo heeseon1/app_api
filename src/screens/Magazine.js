@@ -3,6 +3,7 @@ import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity } from 'rea
 import { useNavigation } from '@react-navigation/native';
 import { useState, useEffect } from 'react';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import DjangoIP from '../components/SetIP';
 
 const Magazine = ({ route }) => {
     const navigation = useNavigation();
@@ -10,7 +11,7 @@ const Magazine = ({ route }) => {
     const [blight, setBlights] = useState([]);
 
     useEffect(() => {
-        fetch(`http://192.168.1.101:8000/home/blight/${blightId}/`)
+        fetch(`${DjangoIP}/home/blight/${blightId}/`)
             .then((response) => {
                 if (!response.ok) {
                     throw new Error('네트워크 오류');
@@ -27,7 +28,7 @@ const Magazine = ({ route }) => {
 
     const getImage = (imagePath) => {
         try {
-            return `http://192.168.1.101:8000${imagePath}`;
+            return `${DjangoIP}${imagePath}`;
         } catch (error) {
             console.error('이미지 URL을 가져오는 중 오류 발생:', error);
         }

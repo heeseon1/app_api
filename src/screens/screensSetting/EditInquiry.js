@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import DjangoIP from '../../components/SetIP';
 
 const EditInquiry = ({ route }) => {
     const navigation = useNavigation();
@@ -12,7 +13,7 @@ const EditInquiry = ({ route }) => {
 
     const handleSavePress = async () => {
         try {
-            const djServer = `http://192.168.1.101:8000/info/qna/edit/${pk}/`;
+            const djServer = `${DjangoIP}/info/qna/edit/${pk}/`;
 
             const requestData = {
                 newTitle: label,

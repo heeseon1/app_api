@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import DjangoIP from '../../components/SetIP';
+
 
 const Notice = () => {
     const navigation = useNavigation();
@@ -9,7 +11,7 @@ const Notice = () => {
     const [noticeData, setNoticeData] = useState([]);
 
     useEffect(() => {
-        fetch('http://192.168.1.101:8000/info/report')
+        fetch(`${DjangoIP}/info/report`)
           .then((response) => {
             if (!response.ok) {
               throw new Error('네트워크 오류');

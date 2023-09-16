@@ -14,6 +14,7 @@ import {useNavigation, useRoute } from '@react-navigation/native';
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
 import { useFocusEffect } from '@react-navigation/native';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import DjangoIP from '../components/SetIP';
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -22,22 +23,27 @@ const Result = () => {
 const forceUpdate = useRef(null);
 const navigation = useNavigation();
 const route = useRoute();
-const { email,token } = route.params;
+const { token, email } = route.params;
 const [userRecords, setUserRecords] = useState([]);
 const [data, setData] = useState(userRecords);
 const [bookmarkedItems, setBookmarkedItems] = useState([]);
 const [searchQuery, setSearchQuery] = useState('');
 const [filteredData, setFilteredData] = useState([]);
 const [sortAscending, setSortAscending] = useState(true); // 추가: 정렬 순서 상태
+const [resultData, setResultData] = useState([]);
 const bookmarkedRecords = userRecords.filter(item => item.bookmarked);
 
 const fetchData = async () => {
   try {
-    const response = await fetch('http://192.168.1.101:8000/home/history/');
+    const { email } = route.params;
+    const response = await fetch(`${DjangoIP}/home/history/`);
+
     if (!response.ok) {
       throw new Error('네트워크 오류');
     }
+
     const data = await response.json();
+
     if (data.code === 200) {
       const filteredData = data.result.filter((item) => item.email === email);
       setUserRecords(filteredData);
@@ -49,22 +55,31 @@ const fetchData = async () => {
   }
 };
 
+useFocusEffect(
+  React.useCallback(() => {
+    fetchData();
+  }, [route.params])
+);
+
+
 useEffect(() => {
   forceUpdate.current = forceUpdateFunction;
 }, []);
-
-const forceUpdateFunction = () => {
-  setUserRecords([...userRecords]);
-};
 
 useEffect(() => {
   fetchData();
 }, [email]);
 
+const forceUpdateFunction = () => {
+  setUserRecords([...userRecords]);
+};
+
+
+
   
   const getImage = (imagepath) => {
     try {
-      return `http://192.168.1.101:8000${imagepath}`;
+      return `${DjangoIP}${imagepath}`;
     } catch (error) {
       console.log('이미지 URL을 가져오는 오류 발생:', error);
     }
@@ -78,7 +93,7 @@ useEffect(() => {
 const handleBookmarkAndUpdateData = async (item) => {
   try {
     const response = await fetch(
-      `http://192.168.1.101:8000/home/history/${item.id}/`,
+      `${DjangoIP}/home/history/${item.id}/`,
       {
         method: 'PATCH',
         headers: {
@@ -143,22 +158,32 @@ const handleDateSelect = (event, date) => {
     }
 };
 
-const handleSearch = () => {
-    let searchData = data;
+const handleSearch = async () => {
+  try {
+    const response = await fetch(`${DjangoIP}/home/search/`, {
+        method: 'POST',
+        headers: {
+        'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ q: searchQuery }),
+    });
 
-    // 선택한 날짜로 검색하는 로직 추가
-    if (selectedDate) {
-    const formattedSelectedDate = selectedDate.split('T')[0]; // 선택한 날짜에서 시간 부분 제거
-    searchData = data.filter(item =>
-        item.datetime.startsWith(formattedSelectedDate),
-    );
+    if (!response.ok) {
+        throw new Error('네트워크 오류');
     }
 
-    // 제목으로 검색어를 필터링
-    searchData = searchData.filter(item => item.title.includes(searchQuery));
+    const searchData = await response.json();
+        if (searchData.results) {
+            setFilteredData(searchData.results);
+        } else {
+          setFilteredData([]);
+          console.error('검색 결과 없음');
+        }
+        } catch (error) {
+        console.error('검색 요청 에러:', error);
+        }
+    };
 
-    setFilteredData(searchData);
-};
 
 const handleSortIconPress = () => {
     const sortedData = [...data];
@@ -251,7 +276,7 @@ return (
               </View>
             </View>
             <FlatList
-              data={userRecords}
+               data={filteredData.length > 0 ? filteredData : userRecords}
               renderItem={renderItem}
               keyExtractor={(item) => item.id.toString()}
             />

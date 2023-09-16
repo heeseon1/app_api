@@ -2,6 +2,7 @@ import React, { useState,  useEffect } from 'react';
 import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, FlatList } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import DjangoIP from '../../components/SetIP';
 
 
 const Result_ = ({route}) => {
@@ -21,7 +22,7 @@ const Result_ = ({route}) => {
 
     const getImage = (imagepath) => {
         try {
-            return `http://192.168.1.101:8000${imagepath}`;
+            return `${DjangoIP}${imagepath}`;
         } catch (error) {
             console.log('이미지 URL을 가져오는 오류 발생:', error);
         }

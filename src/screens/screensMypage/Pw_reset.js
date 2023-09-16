@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import DjangoIP from '../../components/SetIP';
 
 const Pw_reset = ({ navigation, route }) => {
     const [basepassword, setPassword] = useState('');
@@ -22,7 +23,7 @@ const Pw_reset = ({ navigation, route }) => {
                 return;
               }
 
-              const djServer = await fetch('http://192.168.1.101:8000/accounts/dj-rest-auth/password/change/', {
+              const djServer = await fetch(`${DjangoIP}/accounts/dj-rest-auth/password/change/`, {
                 method: 'POST',
                 headers: {
                 Authorization: `Bearer ${token}`,

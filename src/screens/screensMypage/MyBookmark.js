@@ -2,7 +2,9 @@ import React from 'react';
 import { View, Text, Image, StyleSheet, FlatList, TouchableOpacity, ScrollView } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import DjangoIP from '../../components/SetIP';
 import { useState, useEffect } from 'react';
+
 
 const MyBookmark = ({ handleBookmarkAndUpdateData }) => {
     const navigation = useNavigation();
@@ -13,7 +15,7 @@ const MyBookmark = ({ handleBookmarkAndUpdateData }) => {
     console.log('데이터:', email);
     const fetchData = async () => {
         try {
-          const response = await fetch('http://192.168.1.101:8000/home/history/');
+          const response = await fetch(`${DjangoIP}/home/history/`);
           if (!response.ok) {
             throw new Error('네트워크 오류');
           }
@@ -38,7 +40,7 @@ const MyBookmark = ({ handleBookmarkAndUpdateData }) => {
     
       const getImage = (imagepath) => {
         try {
-          return `http://192.168.200.182:8000${imagepath}`;
+          return `${DjangoIP}${imagepath}`;
         } catch (error) {
           console.log('이미지 URL을 가져오는 오류 발생:', error);
         }

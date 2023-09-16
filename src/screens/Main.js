@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { useFocusEffect } from '@react-navigation/native';
+import DjangoIP from '../components/SetIP';
 
 const Main = ({ navigation }) => {
   const [blights, setBlights] = useState([]);
@@ -19,7 +20,7 @@ const Main = ({ navigation }) => {
 
 
   useEffect(() => {
-    fetch('http://192.168.1.101:8000/home/blight/')
+    fetch(`${DjangoIP}/home/blight/`)
       .then((response) => {
         if (!response.ok) {
           throw new Error('네트워크 오류');
@@ -33,7 +34,7 @@ const Main = ({ navigation }) => {
   useFocusEffect(
     React.useCallback(() => {
       const { email } = route.params;
-      fetch('http://192.168.1.101:8000/home/history/')
+      fetch(`${DjangoIP}/home/history/`)
         .then((response) => {
           if (!response.ok) {
             throw new Error('네트워크 오류');
@@ -54,7 +55,7 @@ const Main = ({ navigation }) => {
 
   const getImage = (imagepath) => {
     try {
-      return `http://192.168.1.101:8000${imagepath}`;
+      return `${DjangoIP}${imagepath}`;
     } catch (error) {
       console.log('이미지 URL을 가져오는 오류 발생:', error);
     }
@@ -110,7 +111,7 @@ const Main = ({ navigation }) => {
   const handleBookmarkAndUpdateData = async (item) => {
     try {
       const response = await fetch(
-        `http://192.168.1.101:8000/home/history/${item.id}/`,
+        `${DjangoIP}/home/history/${item.id}/`,
         {
           method: 'PATCH',
           headers: {

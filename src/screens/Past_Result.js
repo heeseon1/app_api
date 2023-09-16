@@ -4,6 +4,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useState, useEffect } from 'react';
 
+
 const Past_Result = () => {
     const navigation = useNavigation();
     const route = useRoute();

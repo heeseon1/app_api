@@ -4,6 +4,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import DjangoIP from '../components/SetIP';
 
 const SignUp = () => {
     const [username, setUsername] = useState('');
@@ -21,7 +22,7 @@ const SignUp = () => {
     };
 
     const handleSignUp = async () => {
-        const djServer = 'http://192.168.1.101:8000/accounts/dj-rest-auth/registration/';
+        const djServer = `${DjangoIP}/accounts/dj-rest-auth/registration/`;
 
         if (username.length < 3 || email.length < 1 || password1.length < 1 || password2.length < 1) {
             Alert.alert('경고', '입력되지 않은 칸이 있습니다! 모두 입력해 주세요!', [{ text: '확인' }]);
@@ -50,7 +51,7 @@ const SignUp = () => {
                     return;
                 }
 
-                const csrfResponse = await axios.get('http://192.168.1.101:8000/accounts/get-csrf-token/');
+                const csrfResponse = await axios.get(`${DjangoIP}/accounts/get-csrf-token/`);
                 csrfToken = csrfResponse.data.csrf_token;
 
                 const response = await axios.post(

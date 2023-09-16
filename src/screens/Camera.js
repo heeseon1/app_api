@@ -14,6 +14,7 @@ import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import RNFS from 'react-native-fs';
 import Result from './Result';
+import DjangoIP from '../components/SetIP';
 
 const Camera = ({ navigation }) => {
   const [selectedImage, setSelectedImage] = useState(null);
@@ -23,6 +24,10 @@ const Camera = ({ navigation }) => {
   const route = useRoute();
   const { token, email, pk } = route.params;
   console.log('이메일',email);
+
+  const [imagePath, setImagePath] = useState(null); 
+  const [responseForDiagnose, setResponseForDiagnose] = useState(null); 
+  const [serverResponse, setServerResponse] = useState(null);
 
   const openCamera = () => {
     const options = {
@@ -34,6 +39,9 @@ const Camera = ({ navigation }) => {
       if (!response.didCancel) {
         if (response.assets && response.assets.length > 0) {
           const imagePath = response.assets[0].uri; // 이미지 경로 가져오기
+          const responseForDiagnose = response;
+          setImagePath(imagePath);
+          setResponseForDiagnose(responseForDiagnose);
           console.log('이미지 경로 : ', imagePath);
   
           // imagePath 저장
@@ -45,10 +53,7 @@ const Camera = ({ navigation }) => {
               console.log('우아', asset);
               if (asset.uri) {
                 await saveImageToGallery(savedImagePath);
-                await uploadImageToServer(savedImagePath, response.assets[0].type, response.assets[0].fileName);
-                
-                // 여기서 팝업을 표시합니다.
-                setShowPopup(true); // 이 부분을 추가합니다.
+                setShowPopup(true);
               }
             }
           } catch (error) {
@@ -82,18 +87,18 @@ const Camera = ({ navigation }) => {
   };
 
   // 서버로 이미지 업로드
-  const uploadImageToServer = async (savedImagePath, type, fileName) => {
+  const uploadImageToServer = async (imagePath, type, fileName) => {
       try {
       const formData = new FormData();
       formData.append('user_image', {
-        uri: `file://${savedImagePath}`,
+        uri: imagePath,
         type,
         name: fileName,
       });
       formData.append('email', email);
-      console.log('폼데이터',savedImagePath, type, fileName);
+      console.log('폼데이터', formData);
 
-      const djServer = await fetch('http://192.168.1.101:8000/photo/test/', {
+      const djServer = await fetch(`${DjangoIP}/photo/test/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -104,66 +109,55 @@ const Camera = ({ navigation }) => {
 
       if (djServer.status === 200) {
         const data = await djServer.json();
-        setResult(data);
         console.log('데이터 확인: ', data);
+        return data;
       } else {
         console.error('사진 업로드 실패');
+        throw new Error('사진 업로드 실패');
       }
     } catch (error) {
       console.error('사진 업로드 중 오류: ', error);
+      throw error;
     }
   };
 
   const openGallery = async () => {
     launchImageLibrary({ mediaType: 'photo' }, async (response) => {
       if (!response.didCancel) {
-        setSelectedImage(response.uri);
+        const imagePath =  response.assets[0].uri;
+        const responseForDiagnose = response;
+        setImagePath(imagePath);
+        setResponseForDiagnose(responseForDiagnose);
+        console.log('갤러리', imagePath, responseForDiagnose);
         setShowPopup(true);
-      } 
+    }
+  });
+  }
+  
 
-      const formData = new FormData();
-      formData.append('user_image', {
-        uri: response.assets[0].uri,
-        type: response.assets[0].type,
-        name: response.assets[0].fileName,
-      });
-      formData.append('email', email);
-      console.log('폼데이터2:',response);
+  const handleDiagnose = async () => {
+    console.log('팝업창',imagePath, responseForDiagnose);
 
-      try {
-        const djServer = await fetch('http://192.168.1.101:8000/photo/test/', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'multipart/form-data',
-            'Authorization': `Bearer ${token}`,
-          },
-          body: formData,
-        });
-
-        if (djServer.status === 200) {
-          const data = await djServer.json();
-          setResult(data);
-          console.log('데이터 확인:', data);
-        } else {
-          console.error('사진 업로드 실패');
-        }
-      } catch (error) {
-        console.error('사진 업로드 중 오류:', error);
+    try {
+      if (imagePath && responseForDiagnose) {
+        setIsLoading(true);
+        const data = await uploadImageToServer(imagePath, responseForDiagnose.assets[0].type, responseForDiagnose.assets[0].fileName);
+        console.log('팝업창에서',imagePath, responseForDiagnose.assets[0].type, responseForDiagnose.assets[0].fileName);
+        setServerResponse(data);
+        navigation.navigate('Past_Result', { token, email, result: data });
+      } else {
+        console.error('이미지 또는 response가 없습니다.');
       }
-    });
-  };
-
-  const handleDiagnose = () => {
-    setIsLoading(true); // 로딩 상태를 true로 변경
-
-    // 가상의 로딩 시간을 지연시킴 (실제 작업이 여기에 와야 함)
-    setTimeout(() => {
+    } catch (error) {
+      console.error('이미지 업로드 중 오류:', error);
+    } finally {
       setIsLoading(false);
       setShowPopup(false);
-      navigation.navigate('Past_Result', { token, email, result });
-    }, 2000); // 2초
-    // 실제 작업 코드는 여기에 작성되어야 함
+    }
   };
+
+
+  
 
   const buttons = [
     { key: 'camera', title: '카메라', onPress: openCamera },

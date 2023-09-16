@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import DjangoIP from '../components/SetIP';
 
 const LoginScreen = () => {
     const navigation = useNavigation();
@@ -56,7 +57,7 @@ const LoginScreen = () => {
                 'Authorization': `Bearer ${token}`,
             });
 
-            const djServer = await fetch('http://192.168.1.101:8000/accounts/dj-rest-auth/login/', {
+            const djServer = await fetch(`${DjangoIP}/accounts/dj-rest-auth/login/`, {
                 method: 'POST',
                 headers,
                 body: JSON.stringify({

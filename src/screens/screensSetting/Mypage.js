@@ -3,6 +3,7 @@ import { View, Text, Image, TouchableOpacity, StyleSheet, FlatList, Switch } fro
 import { useNavigation, useRoute, useFocusEffect} from '@react-navigation/native';
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import DjangoIP from '../../components/SetIP';
 
 
 const Mypage = () => {
@@ -62,7 +63,7 @@ const Mypage = () => {
 
         try {
             // 서버에서 유저 프로필 정보를 가져오는 API 엔드포인트로 수정
-            const djServer = await fetch(`http://192.168.1.101:8000/accounts/profile/${pk}/`, {
+            const djServer = await fetch(`${DjangoIP}/accounts/profile/${pk}/`, {
                 method: 'GET',
                 headers: {
                     Authorization: `Bearer ${token}` // 토큰 추가
@@ -111,7 +112,7 @@ const Mypage = () => {
                 {renderBackButton()}
             </View>
             <Text style={styles.appName}>GreenDan</Text>
-            <Image source={{ uri:`http://192.168.1.101:8000${profileImage}` }} style={styles.profileImage} />
+            <Image source={{ uri:`${DjangoIP}${profileImage}` }} style={styles.profileImage} />
             <Text style={styles.welcomeText}>환영합니다!</Text>
             <Text style={styles.username}>{username}</Text>
             <FlatList
