@@ -14,9 +14,9 @@ import DjangoIP from '../components/SetIP';
 
 const Main = ({ navigation }) => {
   const [blights, setBlights] = useState([]);
-  const [resultData, setResultData] = useState([]);
+  const [data, setData] = useState([]);
   const route = useRoute();
-  const {token} = route.params;
+  const {token, email} = route.params;
 
 
   useEffect(() => {
@@ -44,7 +44,7 @@ const Main = ({ navigation }) => {
         .then((data) => {
           if (data.code === 200) {
             const filteredData = data.result.filter((item) => item.email === email);
-            setResultData(filteredData);
+            setData(filteredData);
           } else {
             console.error('데이터 가져오기 실패:', data.message);
           }
@@ -136,9 +136,6 @@ const Main = ({ navigation }) => {
   
       setData(updatedData);
   
-    
-    fetchData();
-  
     } catch (error) {
       console.error('오류 발생:', error);
     }
@@ -146,6 +143,7 @@ const Main = ({ navigation }) => {
 
   const handleRecord = (item) => {
     navigation.navigate('Result_', {
+      id: item.id,
       title: item.name,
       image: item.history_img,
       explanation: item.causation,
@@ -153,7 +151,7 @@ const Main = ({ navigation }) => {
       bookmarked: item.bookmarked,
       updateBookmark: handleBookmarkAndUpdateData,
       token: token,
-
+      email
     });
   };
 
@@ -175,7 +173,7 @@ const Main = ({ navigation }) => {
 
         <Text style={styles.container2}>나의 지난 기록</Text>
         <FlatList
-          data={resultData}
+          data={data}
           renderItem={itemRenderer}
           keyExtractor={(item) => item.id.toString()}
         />

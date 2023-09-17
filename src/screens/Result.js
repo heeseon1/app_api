@@ -25,12 +25,13 @@ const navigation = useNavigation();
 const route = useRoute();
 const { token, email } = route.params;
 const [userRecords, setUserRecords] = useState([]);
-const [data, setData] = useState(userRecords);
+const [data, setData] = useState([]);
 const [bookmarkedItems, setBookmarkedItems] = useState([]);
 const [searchQuery, setSearchQuery] = useState('');
-const [filteredData, setFilteredData] = useState([]);
+const [filteredData, setFilteredData] = useState(userRecords);
 const [sortAscending, setSortAscending] = useState(true); // 추가: 정렬 순서 상태
 const [resultData, setResultData] = useState([]);
+const [sortedData, setSortedData] = useState(userRecords);
 const bookmarkedRecords = userRecords.filter(item => item.bookmarked);
 
 const fetchData = async () => {
@@ -47,6 +48,9 @@ const fetchData = async () => {
     if (data.code === 200) {
       const filteredData = data.result.filter((item) => item.email === email);
       setUserRecords(filteredData);
+      setFilteredData(filteredData);
+      setSortedData(filteredData);
+      
     } else {
       console.error('데이터 가져오기 실패:', data.message);
     }
@@ -68,7 +72,33 @@ useEffect(() => {
 
 useEffect(() => {
   fetchData();
+  handleSortIconPress();
 }, [email]);
+
+const handleSortIconPress = () => {
+  const sortedData = [...userRecords];
+  console.log('정렬',sortedData)
+
+  // 오름차순 정렬
+  if (sortAscending) {
+    sortedData.sort((a, b) => {
+      const dateA = new Date(a.created_at);
+      const dateB = new Date(b.created_at);
+      return dateA - dateB;
+    });
+  } else {
+    // 내림차순 정렬
+    sortedData.sort((a, b) => {
+      const dateA = new Date(a.created_at);
+      const dateB = new Date(b.created_at);
+      return dateB - dateA;
+    });
+  }
+
+  setSortedData(sortedData); 
+  setSortAscending(!sortAscending);
+  handleSearch();
+};
 
 const forceUpdateFunction = () => {
   setUserRecords([...userRecords]);
@@ -148,22 +178,58 @@ const handleCalendarIconPress = () => {
 };
 
 const handleDateSelect = (event, date) => {
-    if (date !== undefined) {
+  if (date !== undefined) {
     setSelectedDate(date);
     setIsCalendarVisible(false);
-    // 여기서 선택한 날짜로 검색하는 로직을 수행하세요.
-    // 검색 결과를 filteredData에 업데이트하세요.
-    } else {
+    
+    // 선택한 날짜를 서버로 보내기
+    const selectedDateISO = date.toISOString();
+    
+    fetchFilteredData(selectedDateISO);
+  } else {
     setIsCalendarVisible(false);
+  }
+};
+
+const fetchFilteredData = async (selectedDate) => {
+  try {
+    const formattedDate = selectedDate.toISOString(); // 선택한 날짜를 ISO 형식으로 변환
+    console.log('날짜',formattedDate)
+    const response = await fetch(`${DjangoIP}/home/search/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ date: formattedDate }),
+    });
+
+    if (!response.ok) {
+      throw new Error('네트워크 오류');
     }
+
+    const filteredData = await response.json();
+
+    if (filteredData.results) {
+      setFilteredData(filteredData.results);
+    } else {
+      setFilteredData([]); // 검색 결과가 없을 때 빈 배열로 설정
+    }
+  } catch (error) {
+    console.error('날짜로 데이터 필터링 요청 에러:', error);
+  }
 };
 
 const handleSearch = async () => {
   try {
+
+  
+
     const response = await fetch(`${DjangoIP}/home/search/`, {
         method: 'POST',
         headers: {
         'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ q: searchQuery }),
     });
@@ -173,31 +239,33 @@ const handleSearch = async () => {
     }
 
     const searchData = await response.json();
-        if (searchData.results) {
-            setFilteredData(searchData.results);
+       if (searchData.results) {
+      let sortedSearchData = [...searchData.results]; // 검색 결과를 복사
+
+      // 오름차순 또는 내림차순으로 정렬
+      if (!sortAscending) {
+        sortedSearchData.sort((a, b) => {
+          const dateA = new Date(a.created_at);
+          const dateB = new Date(b.created_at);
+          return dateB - dateA; // 내림차순 정렬
+        });
+      } else {
+        sortedSearchData.sort((a, b) => {
+          const dateA = new Date(a.created_at);
+          const dateB = new Date(b.created_at);
+          return dateA - dateB; // 오름차순 정렬
+        });
+      }
+
+      setFilteredData(sortedSearchData);
         } else {
           setFilteredData([]);
-          console.error('검색 결과 없음');
         }
         } catch (error) {
         console.error('검색 요청 에러:', error);
         }
     };
 
-
-const handleSortIconPress = () => {
-    const sortedData = [...data];
-    sortedData.sort((a, b) => {
-    if (sortAscending) {
-        return new Date(a.datetime) - new Date(b.datetime);
-    } else {
-        return new Date(b.datetime) - new Date(a.datetime);
-    }
-    });
-
-    setData(sortedData);
-    setSortAscending(!sortAscending);
-};
 
 const renderCalendarIcon = () => (
     <TouchableOpacity onPress={handleCalendarIconPress}>
@@ -276,10 +344,18 @@ return (
               </View>
             </View>
             <FlatList
-               data={filteredData.length > 0 ? filteredData : userRecords}
+               data={filteredData.length > 0 ? filteredData : sortedData}
               renderItem={renderItem}
-              keyExtractor={(item) => item.id.toString()}
+              keyExtractor={(item) => item.id}
             />
+            {isCalendarVisible && (
+            <DateTimePicker
+              value={selectedDate || new Date()}
+              mode="date"
+              display="calendar"
+              onChange={handleDateSelect}
+            />
+            )}
           </View>
         )}
       </Tab.Screen>

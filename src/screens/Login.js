@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import versionCheck from 'react-native-version-check'; // 추가: react-native-version-check 라이브러리를 임포트
 import DjangoIP from '../components/SetIP';
 
 const LoginScreen = () => {
@@ -16,6 +17,7 @@ const LoginScreen = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [token, setToken] = useState('');
+    const [currentVersion, setCurrentVersion] = useState('vol 0.0.93'); // 추가: 현재 앱 버전 상태 추가
 
     useEffect(() => {
         const getToken = async () => {
@@ -51,59 +53,70 @@ const LoginScreen = () => {
 
 
     const handleLogin = async () => {
+        if (!email) {
+            Alert.alert('이메일 입력', '이메일을 입력해주세요', [{ text: '확인' }]);
+            return;
+        }
+    
+        // 이메일 형식이 올바르지 않을 때 팝업 표시
+        if (!isEmailValid(email)) {
+            Alert.alert('이메일 형식 오류', '이메일 형식이 올바르지 않습니다', [{ text: '확인' }]);
+            return;
+        }
+    
+        // 비밀번호 입력이 없을 때 팝업 표시
+        if (!password) {
+            Alert.alert('비밀번호 입력', '비밀번호를 입력해주세요', [{ text: '확인' }]);
+            return;
+        }
+    
+
         try {
             const headers = new Headers({
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`,
             });
-
+        
             const djServer = await fetch(`${DjangoIP}/accounts/dj-rest-auth/login/`, {
                 method: 'POST',
                 headers,
                 body: JSON.stringify({
-                    email,
-                    password,
+                email,
+                password,
                 }),
             });
-
-            if (!isLoginEnabled()) {
-                if (email.length === 0 || password.length === 0) {
-                    Alert.alert('로그인 실패', '아이디와 비밀번호를 모두 입력해주세요.', [{ text: '확인' }]);
-                } else if (!isEmailValid(email)) {
-                    Alert.alert('로그인 실패', '올바른 이메일 형식이 아닙니다. 다시 확인해주세요.', [{ text: '확인' }]);
-                }  else  {r
-                    // 비밀번호가 맞지 않을 때 팝업 표시
-                    Alert.alert('로그인 실패', '비밀번호가 맞지 않습니다. 다시 확인해주세요.', [{ text: '확인' }]);
-            }
-        } else {
-                // Simulate a successful login
-
-                if (djServer.status === 200) {
-                    const responseData = await djServer.json();
-                    const accessToken = responseData.access;
-                    const pk = responseData.user.pk;
-                    const email = responseData.user.email;
-
-
-                    if (accessToken) {
-                        await AsyncStorage.setItem('authToken', accessToken); // AsyncStorage에 저장
-                        navigation.navigate('Home', { token: accessToken, pk, email});
-
-
-                    } else {
-                        console.error('토큰이 정의되지 않았습니다.');
-                    }
-
-
+        
+            // 서버 응답을 기다림
+            if (djServer.status === 200) {
+                // 로그인 성공 시 처리
+                const responseData = await djServer.json();
+                const accessToken = responseData.access;
+                const pk = responseData.user.pk;
+                const email = responseData.user.email;
+        
+                if (accessToken) {
+                await AsyncStorage.setItem('authToken', accessToken); // AsyncStorage에 저장
+                navigation.navigate('Home', { token: accessToken, pk, email });
                 } else {
-                    const responseData = await djServer.json();
-                    Alert.alert('로그인 실패', '서버와 연동되지 않았습니다. 네트워크 상태를 확인해주세요.', [{ text: '확인' }]);
-                    console.error('API 요청 실패 : ', responseData);
-                }};
-        } catch (error){
-            console.error('API 요청 실패:',error )
-        }
-    };
+                console.error('토큰이 정의되지 않았습니다.');
+                }
+            } else if (djServer.status === 400) {
+                // 비밀번호가 일치하지 않을 때 팝업 표시
+                Alert.alert('로그인 실패', '비밀번호가 일치하지 않습니다', [{ text: '확인' }]);
+            } else {
+                // 서버 응답 실패 또는 네트워크 오류 처리
+                const errorMessage = '서버와 연동되지 않았습니다. 네트워크 상태를 확인해주세요.';
+                Alert.alert('로그인 실패', errorMessage, [{ text: '확인' }]);
+                console.error('API 요청 실패');
+            }
+            } catch (error) {
+            // 네트워크 오류 처리
+            const errorMessage = '네트워크 오류가 발생했습니다. 네트워크 연결을 확인하세요.';
+            Alert.alert('로그인 실패', errorMessage, [{ text: '확인' }]);
+            console.error('API 요청 실패:', error);
+            }
+        };
+        
 
     const handlePW_findScreen = () => {
         navigation.navigate('Pw_find');
@@ -155,7 +168,9 @@ const LoginScreen = () => {
                 horizontal
                 contentContainerStyle={styles.buttonContainer}
             />
-            <Text style={styles.text}>vol.0.9</Text>
+            <View>
+            <Text style={styles.text}>현재 버전: {currentVersion}</Text>
+            </View>
         </View>
     );
 };

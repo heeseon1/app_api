@@ -36,7 +36,7 @@ const Result_ = ({route}) => {
             <View style={styles.imageContainer}>
                 <Image source={{ uri: getImage(image) }} style={styles.image} />
                 <View style={styles.infoContainer}>
-                    <Text style={styles.datetime}>Date: {item.datetime}</Text>
+                    <Text style={styles.datetime}>{formattedDate}</Text>
                     <TouchableOpacity style={styles.bookmarkContainer}>
                         <Icon
                             name={item.bookmarked ? 'bookmark' : 'bookmark-border'}
