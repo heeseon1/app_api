@@ -8,12 +8,13 @@ TouchableOpacity,
 FlatList,
 TextInput,
 Modal,
+Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {useNavigation, useRoute } from '@react-navigation/native';
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
 import { useFocusEffect } from '@react-navigation/native';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import DjangoIP from '../components/SetIP';
 
 const Tab = createMaterialTopTabNavigator();
@@ -33,11 +34,16 @@ const [sortAscending, setSortAscending] = useState(true); // 추가: 정렬 순�
 const [resultData, setResultData] = useState([]);
 const [sortedData, setSortedData] = useState(userRecords);
 const bookmarkedRecords = userRecords.filter(item => item.bookmarked);
+const [searchDate, setSearchDate] = useState(null);
 
 const fetchData = async () => {
   try {
-    const { email } = route.params;
-    const response = await fetch(`${DjangoIP}/home/history/`);
+    const { token, email } = route.params;
+    const response = await fetch(`${DjangoIP}/home/history/`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
     if (!response.ok) {
       throw new Error('네트워크 오류');
@@ -47,6 +53,8 @@ const fetchData = async () => {
 
     if (data.code === 200) {
       const filteredData = data.result.filter((item) => item.email === email);
+      console.log('히스토리',filteredData)
+
       setUserRecords(filteredData);
       setFilteredData(filteredData);
       setSortedData(filteredData);
@@ -77,7 +85,6 @@ useEffect(() => {
 
 const handleSortIconPress = () => {
   const sortedData = [...userRecords];
-  console.log('정렬',sortedData)
 
   // 오름차순 정렬
   if (sortAscending) {
@@ -172,74 +179,85 @@ const handleResult = (item) => {
 
 const [selectedDate, setSelectedDate] = useState(null);
 const [isCalendarVisible, setIsCalendarVisible] = useState(false);
+const [isNoDataModalVisible, setIsNoDataModalVisible] = useState(false);
+const [noDataMessage, setNoDataMessage] = useState('');
 
 const handleCalendarIconPress = () => {
-    setIsCalendarVisible(true);
+    setIsCalendarVisible(!isCalendarVisible);
 };
 
-const handleDateSelect = (event, date) => {
+const onCancel = () => {
+  setIsCalendarVisible(false);
+}
+
+useEffect(() => {
+  setSelectedDate(null);
+}, [isCalendarVisible]);
+
+
+const fetchFilteredData = async (date) => {
   if (date !== undefined) {
     setSelectedDate(date);
-    setIsCalendarVisible(false);
-    
-    // 선택한 날짜를 서버로 보내기
-    const selectedDateISO = date.toISOString();
-    
-    fetchFilteredData(selectedDateISO);
-  } else {
-    setIsCalendarVisible(false);
+    const selectedDateFormatted = `${date.getFullYear()}-${(date.getMonth() + 1)
+      .toString()
+      .padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+
+    console.log('날짜아',selectedDateFormatted)
+
+  try {
+      setSelectedDate(selectedDateFormatted);
+
+      const response = await fetch(`${DjangoIP}/home/date-search/`, {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ selected_date: selectedDateFormatted }),
+      });
+
+      if (!response.ok) {
+          throw new Error('네트워크 오류');
+      }
+
+      const filteredData = await response.json();
+
+      if (filteredData.message === '해당 날짜에 맞는 내역이 없습니다.') {
+        setFilteredData([]);
+        Alert.alert('알림', '해당 날짜에 데이터가 없습니다.',[{ text: '확인' }]);
+      }else{
+        let selectData = [...filteredData.results];
+        console.log('응답받은값', selectData);
+        setFilteredData(selectData);
+      }
+      
+      setSelectedDate(null);
+  } catch (error) {
+      console.error('날짜로 데이터 필터링 요청 에러:', error);
   }
+}
 };
 
-const fetchFilteredData = async (selectedDate) => {
+const handleSearch = async () => {
   try {
-    const formattedDate = selectedDate.toISOString(); // 선택한 날짜를 ISO 형식으로 변환
-    console.log('날짜',formattedDate)
+    setSearchDate(null);
+
     const response = await fetch(`${DjangoIP}/home/search/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ date: formattedDate }),
+      body: JSON.stringify({ q: searchQuery }),
     });
 
     if (!response.ok) {
       throw new Error('네트워크 오류');
     }
 
-    const filteredData = await response.json();
-
-    if (filteredData.results) {
-      setFilteredData(filteredData.results);
-    } else {
-      setFilteredData([]); // 검색 결과가 없을 때 빈 배열로 설정
-    }
-  } catch (error) {
-    console.error('날짜로 데이터 필터링 요청 에러:', error);
-  }
-};
-
-const handleSearch = async () => {
-  try {
-
-  
-
-    const response = await fetch(`${DjangoIP}/home/search/`, {
-        method: 'POST',
-        headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ q: searchQuery }),
-    });
-
-    if (!response.ok) {
-        throw new Error('네트워크 오류');
-    }
-
     const searchData = await response.json();
-       if (searchData.results) {
+
+    if (searchData.results) {
       let sortedSearchData = [...searchData.results]; // 검색 결과를 복사
 
       // 오름차순 또는 내림차순으로 정렬
@@ -258,30 +276,13 @@ const handleSearch = async () => {
       }
 
       setFilteredData(sortedSearchData);
-        } else {
-          setFilteredData([]);
-        }
-        } catch (error) {
-        console.error('검색 요청 에러:', error);
-        }
-    };
-
-
-const renderCalendarIcon = () => (
-    <TouchableOpacity onPress={handleCalendarIconPress}>
-    <Icon name="date-range" size={30} color="gray" />
-    </TouchableOpacity>
-);
-
-const renderSortIcon = () => (
-    <TouchableOpacity onPress={handleSortIconPress}>
-    <Icon
-        name={sortAscending ? 'arrow-upward' : 'arrow-downward'}
-        size={30}
-        color="gray"
-    />
-    </TouchableOpacity>
-);
+    } else {
+      setFilteredData([]);
+    }
+  } catch (error) {
+    console.error('검색 요청 에러:', error);
+  }
+};
 
 const renderItem = ({item}) => {
     const date = new Date(item.created_at);
@@ -333,6 +334,17 @@ return (
                 </TouchableOpacity>
                 <TouchableOpacity onPress={handleCalendarIconPress}>
                   <Icon name="date-range" size={30} color="#8CB972" />
+
+                  {isCalendarVisible && (
+                    <DateTimePickerModal
+                       isVisible={isCalendarVisible}
+                        mode="date"
+                        display="calendar"
+                        onCancel={onCancel}
+                        onConfirm={(date) => fetchFilteredData(date)}
+                    />
+                  )}
+
                 </TouchableOpacity>
                 <TouchableOpacity onPress={handleSortIconPress}>
                   <Icon
@@ -348,14 +360,9 @@ return (
               renderItem={renderItem}
               keyExtractor={(item) => item.id}
             />
-            {isCalendarVisible && (
-            <DateTimePicker
-              value={selectedDate || new Date()}
-              mode="date"
-              display="calendar"
-              onChange={handleDateSelect}
-            />
-            )}
+            
+            
+           
           </View>
         )}
       </Tab.Screen>

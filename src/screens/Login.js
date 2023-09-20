@@ -9,7 +9,6 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import versionCheck from 'react-native-version-check'; // 추가: react-native-version-check 라이브러리를 임포트
 import DjangoIP from '../components/SetIP';
 
 const LoginScreen = () => {
