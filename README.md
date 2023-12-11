@@ -1,79 +1,64 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+## 🚩2023 캡스톤 프로젝트 - 기업밀착과제<br>
+<p align="center">
+   <img width="200" height="200" src="https://github.com/heeseon1/app_api/assets/116551167/640626ce-98cf-4e27-a6d3-2d8c8e458d59" />
+</p>
 
-# Getting Started
+## 👩🏻‍👧🏻‍👧🏻팀 소개
+- 한양여자대학교 스마트IT과
+- 취뽀하조 : 취업 뽀개기(취업에 성공하자라는 목표를 가진 팀)
+  ### 👩🏻‍💻구성원 소개
+  |👑 PM|FE|BE|
+  |:----:|:----:|:----:|
+  |<p align="center"><img width="80%" height="80%" src="https://github.com/heeseon1/app_api/assets/116551167/8a8ea126-0575-4e7f-aff4-7f8308d57382"></p>|<p align="center" /><img width="60%" height="60%" src="https://github.com/heeseon1/app_api/assets/116551167/4e80512b-7411-45f9-a0c8-c4cef2db8ead" /></p>|<p align="center"><img width="80%" height="80%" src="https://github.com/heeseon1/app_api/assets/116551167/5847e24f-f100-4aeb-84a4-50985f1738ba" /></p>|
+  |**2104637 박희선**|**2104649 양지연**|**2104714 황다은**|
+  |AI 서버 개발|디자인 및 앱 개발|Django 서버 개발|
+  |<a href="https://github.com/heeseon1/greendanAI.git">AI 서버 바로가기</a>|<a href="https://github.com/jiyeon0113/Greendan_main.git">프론트 서버 바로가기</a>|<a href="https://github.com/toppingh/Capstone.git">백엔드 서버 바로가기</a>|
 
->**Note**: Make sure you have completed the [React Native - Environment Setup](https://reactnative.dev/docs/environment-setup) instructions till "Creating a new application" step, before proceeding.
+  <br>
 
-## Step 1: Start the Metro Server
+## 🖥️프로젝트 소개
+AI기반 토마토 잎 병충해 판별 앱<br>
 
-First, you will need to start **Metro**, the JavaScript _bundler_ that ships _with_ React Native.
+#### ⏱️개발 기간
+2023.03.02 ~ 2023.12.12<br>
 
-To start Metro, run the following command from the _root_ of your React Native project:
+#### 🛠️ 개발 환경
+- <b>IDE</b> : <img src="https://img.shields.io/badge/Visual Studio Code-007ACC?style=flat-square&logo=Visual Studio Code&logoColor=white"/> <img src="https://img.shields.io/badge/PyCharm-000000?style=flat-square&logo=PyCharm&logoColor=white"/>
+- <b>Framework</b> : <img src="https://img.shields.io/badge/Django-092E20?style=flat-square&logo=Django&logoColor=white"/> <img src="https://img.shields.io/badge/Flask-000000?style=flat-square&logo=Flask&logoColor=white"/> <img src="https://img.shields.io/badge/React Native-61DAFB?style=flat-square&logo=React&logoColor=white"/>
+- <b>Database</b> : <img src="https://img.shields.io/badge/MySQL-4479A1?style=flat-square&logo=MySQL&logoColor=white"/>
+<br><br>
+<!--2️⃣3️⃣4️⃣5️⃣-->
+## 💡 기능
+<h3>1️⃣ 회원가입 및 로그인</h3>
 
-```bash
-# using npm
-npm start
+- `DRF의 JWT`를 이용한 유저 검증<br>
+- `SMTP`를 사용한 PW 재설정
 
-# OR using Yarn
-yarn start
-```
+  <br>
 
-## Step 2: Start your Application
+<h3>2️⃣ 카메라 촬영 및 갤러리 사진 선택</h3>
 
-Let Metro Bundler run in its _own_ terminal. Open a _new_ terminal from the _root_ of your React Native project. Run the following command to start your _Android_ or _iOS_ app:
+- `react-native-image-picker`를 이용해 카메라, 갤러리 접근 권한 허용
+- Django 서버로 `POST요청` 전송
 
-### For Android
+<br>
 
-```bash
-# using npm
-npm run android
+<h3>3️⃣ 정상 및 병충해 감염 판별</h3>
 
-# OR using Yarn
-yarn android
-```
+- 촬영하거나 갤러리에서 사진을 선택해 AI 진단을 시작하면 `학습 모델에서 병충해와 비교`
+- 감염 여부를 판단해 결과를 보여주고 결과를 Django 서버를 통해 DB에 저장
 
-### For iOS
+  <br>
+  
+<h3>4️⃣ 북마크(히스토리) 저장</h3>
 
-```bash
-# using npm
-npm run ios
+- 판단한 결과를 DB에 저장해 유저가 결과 내역 확인 가능
+- 원하는 결과를 `북마크`할 수 있음
+- `오름차순/내림차순` 정렬 가능
 
-# OR using Yarn
-yarn ios
-```
+  <br>
+  
+<h3>5️⃣ 검색</h3>
 
-If everything is set up _correctly_, you should see your new app running in your _Android Emulator_ or _iOS Simulator_ shortly provided you have set up your emulator/simulator correctly.
-
-This is one way to run your app — you can also run it directly from within Android Studio and Xcode respectively.
-
-## Step 3: Modifying your App
-
-Now that you have successfully run the app, let's modify it.
-
-1. Open `App.tsx` in your text editor of choice and edit some lines.
-2. For **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Developer Menu** (<kbd>Ctrl</kbd> + <kbd>M</kbd> (on Window and Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (on macOS)) to see your changes!
-
-   For **iOS**: Hit <kbd>Cmd ⌘</kbd> + <kbd>R</kbd> in your iOS Simulator to reload the app and see your changes!
-
-## Congratulations! :tada:
-
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [Introduction to React Native](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you can't get this to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+- `키워드`를 이용한 검색 가능
+- `캘린더에서 날짜를 선택`해 해당 날짜에 받은 결과 검색 가능
